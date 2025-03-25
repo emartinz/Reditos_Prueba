@@ -40,7 +40,7 @@ public class JwtService {
     ) {
         this.key = getSecretKey(jwtSecret);
         this.expirationTime = expirationTimeMinutes * 60 * 1000; // Convertir a milisegundos
-        logger.info("JWT Service: Se inicializó con {} minutos para expiracion de tokens.", expirationTimeMinutes);
+        logger.info("JWT Service: Inicialización con {} minutos para expiracion de tokens.", expirationTimeMinutes);
     }
 
     /**
@@ -53,8 +53,8 @@ public class JwtService {
             byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
             return Keys.hmacShaKeyFor(keyBytes);
         } catch (Exception e) {
-            logger.error("Error decoding secret key: {}", e.getMessage());
-            throw e;
+            logger.error("Error al encriptar clave a formato SecretKey: {}", e.getMessage());
+            return null;
         }
     }
 
@@ -99,10 +99,10 @@ public class JwtService {
         try {
             final String username = getUsernameFromToken(token);
             boolean isValid = username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-            logger.info("Token validation for user {}: {}", username, isValid ? "Valid" : "Invalid");
+            logger.info("Validacion de token para usuario {}: {}", username, isValid ? "Valid" : "Invalid");
             return isValid;
         } catch (Exception e) {
-            logger.error("Token validation failed: {}", e.getMessage());
+            logger.error("No se pudo validar token: {}", e.getMessage());
             return false;
         }
     }
@@ -132,7 +132,7 @@ public class JwtService {
                 .getPayload()
                 .getExpiration();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid or expired token", e);
+            throw new IllegalArgumentException("Token inválido o expirado.", e);
         }
     }
 
