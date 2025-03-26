@@ -1,11 +1,15 @@
 package com.prtec.auth.application.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.prtec.auth.application.service.jwt.JwtService;
 import com.prtec.auth.domain.model.entities.User;
@@ -19,14 +23,13 @@ import com.prtec.auth.domain.model.entities.User;
 @Service
 public class AuthService {
     private final AuthenticationManager authenticationManager;
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserService userService;
-    private final RoleService roleService;
     private final JwtService jwtService;
 
-    public AuthService(AuthenticationManager authenticationManager, UserService userService, RoleService roleService, JwtService jwtService) {
+    public AuthService(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
-        this.roleService = roleService;
         this.jwtService = jwtService;
     }
 
@@ -60,13 +63,12 @@ public class AuthService {
      * @return User
      */
     public User register(User user) {
-        User savedUser = userService.saveUser(user);
         try {
-            roleService.assignRolesToUser(savedUser.getId(), user.getRoles());
+            return userService.saveUser(user);
         } catch (Exception e) {
-            // Manejo de errores al asignar roles
-            e.printStackTrace();
+            // Loguear el error para más detalles
+            logger.error("Error al registrar usuario: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error al registrar usuario", e);
         }
-        return savedUser;
     }
 }

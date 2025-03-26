@@ -15,6 +15,13 @@ import com.prtec.auth.adapter.out.repository.IUserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Configura los beans principales para la aplicación, incluyendo
+ * la configuración de seguridad, servicios JWT y cualquier otro componente necesario.
+ *
+ * @author Edgar Andres
+ * @version 1.0
+ */
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {

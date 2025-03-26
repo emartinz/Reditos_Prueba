@@ -97,12 +97,18 @@ public class JwtService {
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
+            // Verificar la firma antes de extraer la información
+            Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token);
+    
             final String username = getUsernameFromToken(token);
             boolean isValid = username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-            logger.info("Validacion de token para usuario {}: {}", username, isValid ? "Valid" : "Invalid");
+            logger.info("Validación de token para usuario {}: {}", username, isValid ? "Valid" : "Invalid");
             return isValid;
         } catch (Exception e) {
-            logger.error("No se pudo validar token: {}", e.getMessage());
+            logger.error("No se pudo validar el token: {}", e.getMessage());
             return false;
         }
     }
@@ -145,11 +151,16 @@ public class JwtService {
      * @return nombre del usuario
      */
     public String getUsernameFromToken(String token) {
-        return Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload()
-            .getSubject();
+        try {
+            return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+        } catch (Exception e) {
+            logger.error("Error desconocido al procesar el token: {}", e.getMessage());
+            throw new IllegalArgumentException("Error al procesar el token.", null);
+        }
     }    
 }

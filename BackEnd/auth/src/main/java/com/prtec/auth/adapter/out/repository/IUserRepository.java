@@ -15,3 +15,4 @@ public interface IUserRepository extends JpaRepository<User, Long> {
     @Query("SELECT r FROM Role r JOIN UserRole ur ON ur.role.id = r.id WHERE ur.user.id = :userId")
     List<Role> findRolesByUserId(Long userId);
 } 
+

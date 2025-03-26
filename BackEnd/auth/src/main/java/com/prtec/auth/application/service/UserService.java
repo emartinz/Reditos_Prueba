@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import com.prtec.auth.adapter.out.repository.IUserRepository;
 import com.prtec.auth.domain.model.entities.User;
 
+import jakarta.transaction.Transactional;
+
 import java.util.Optional;
 
 /**
@@ -15,6 +17,7 @@ import java.util.Optional;
  * @version: 1.0
  */
 @Service
+@Transactional
 public class UserService {
     private final IUserRepository userRepository;
 
