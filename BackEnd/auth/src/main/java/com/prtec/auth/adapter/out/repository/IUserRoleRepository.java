@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface IUserRoleRepository extends JpaRepository<UserRole, Long> {
     @Modifying
-    @Query("DELETE FROM UserRole ur WHERE ur.userId = :userId")
+    @Query("DELETE FROM UserRole ur WHERE ur.user.id = :userId")
     int deleteByUserId(Long userId);
     
     List<UserRole> findByUserId(Long userId);

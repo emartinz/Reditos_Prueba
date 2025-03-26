@@ -1,40 +1,52 @@
 package com.prtec.auth.domain.model.entities;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.prtec.auth.application.service.RoleService;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
 @Data
 @NoArgsConstructor
 @Table(name="user")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true, nullable = false, length = 50)
     private String username;
+
+    @Column(nullable = false, length = 200)
     private String password;
 
-    @Transient
-    private List<Role> roles = new ArrayList<>();
+    @ManyToMany
+    @JoinTable(
+        name = "user_role",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    @JsonManagedReference // Esto previene la recursión infinita en User -> Role
+    private List<Role> roles;
 
-    @Transient
-    @JsonIgnore
-    private List<Long> roleIds = new ArrayList<>();
-
-    public User(Long userid, String username, String password) {
-        this.id = userid;
+    public User(Long id, String username, String password) {
+        this.id = id;
         this.username = username;
         this.password = password;
     }
@@ -44,45 +56,28 @@ public class User {
         this.password = password;
     }
 
-    /**
-     * Método para obtener los roles asociados al usuario
-     * 
-     * @param roleService Servicio para obtener roles
-     * @return Lista de roles
-     */
-    public List<Role> getRoles(RoleService roleService) {
-        if (!roles.isEmpty()) {
-            return roles;
-        }
-        roles = roleService.getRolesByUserId(this.id);
-        return roles;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Convertir la lista de roles a una lista de autoridades
+        return roles.stream()
+                    .map(role -> new SimpleGrantedAuthority(role.getName()))
+                    .toList();
     }
 
-    /**
-     * Método para asignar una lista de roles al usuario
-     * 
-     * @param roles Lista de roles
-     */
-    public void setRoles(List<Role> roles) {
-        this.roles = roles;
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
     }
-
-    /**
-     * Método para asignar roles usando sus IDs
-     * 
-     * @param roleIds Lista de IDs de roles
-     * @param roleService Servicio para obtener roles
-     */
-    public void setRoleIds(List<Long> roleIds, RoleService roleService) {
-        this.roles = roleService.findByIds(roleIds);
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
     }
-
-    /**
-     * Método para cargar roles desde el RoleService
-     * 
-     * @param roleService Servicio para obtener roles
-     */
-    public void loadRoles(RoleService roleService) {
-        this.roles = roleService.getRolesByUserId(this.id);
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

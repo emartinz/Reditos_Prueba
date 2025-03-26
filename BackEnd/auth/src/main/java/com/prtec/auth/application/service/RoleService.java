@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.prtec.auth.adapter.out.repository.IRoleRepository;
 import com.prtec.auth.adapter.out.repository.IUserRoleRepository;
 import com.prtec.auth.domain.model.entities.Role;
+import com.prtec.auth.domain.model.entities.User;
 import com.prtec.auth.domain.model.entities.UserRole;
 
 /**
@@ -67,10 +68,16 @@ public class RoleService {
     @Transactional
     public void setRolesToUser(Long userId, List<Long> roleIds) {
         userRoleRepository.deleteByUserId(userId);
+        User user = new User();
+        user.setId(userId);
+
         roleIds.forEach(roleId -> {
+            Role role = new Role();
+            role.setId(roleId);
+
             UserRole userRole = new UserRole();
-            userRole.setUserId(userId);
-            userRole.setRoleId(roleId);
+            userRole.setUser(user);
+            userRole.setRole(role);
             userRoleRepository.save(userRole);
         });
     }
@@ -82,19 +89,16 @@ public class RoleService {
      * @param roleIds
      */
     @Transactional
-    public void assignRolesToUser(Long userId, List<Long> roleIds) {
+    public void assignRolesToUser(Long userId, List<Role> roles) {
+        // Obtener los roles ya asignados al usuario
         List<Role> existingRoles = getRolesByUserId(userId);
 
-        List<Long> existingRoleIds = existingRoles.stream()
-                                        .map(Role::getId)
+        // Filtrar los nuevos roles que no estén ya en la lista de roles existentes
+        List<Role> rolesToAssign = roles.stream()
+                                        .filter(role -> !existingRoles.contains(role))
                                         .toList();
 
-        // Filtrar los nuevos roles que no estén en la lista de roles existentes
-        List<Long> rolesToAssign = roleIds.stream()
-                                    .filter(roleId -> !existingRoleIds.contains(roleId))
-                                    .toList();
-
         // Asignar roles nuevos
-        rolesToAssign.forEach(roleId -> userRoleRepository.assignRoleToUser(userId, roleId));
+        rolesToAssign.forEach(role -> userRoleRepository.assignRoleToUser(userId, role.getId()));
     }
 }

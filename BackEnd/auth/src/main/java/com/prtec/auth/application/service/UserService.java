@@ -17,13 +17,11 @@ import java.util.Optional;
 @Service
 public class UserService {
     private final IUserRepository userRepository;
-    private final RoleService roleService;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public UserService(IUserRepository userRepository, RoleService roleService) {
+    public UserService(IUserRepository userRepository) {
         this.userRepository = userRepository;
-        this.roleService = roleService;
     }
 
     public User saveUser(User user) {
@@ -33,14 +31,6 @@ public class UserService {
 
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
-    }
-
-    public Optional<User> findUserWithRoles(String username) {
-        return userRepository.findByUsername(username)
-                .map(user -> {
-                    user.setRoles(roleService.getRolesByUserId(user.getId()));
-                    return user;
-                });
     }
 
     public Optional<User> findUserById(Long userId) {
