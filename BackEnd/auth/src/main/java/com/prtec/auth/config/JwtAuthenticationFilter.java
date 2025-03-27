@@ -1,4 +1,4 @@
-package com.prtec.auth.application.service.jwt;
+package com.prtec.auth.config;
 
 import java.io.IOException;
 
@@ -11,6 +11,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.prtec.auth.application.utils.JwtUtil;
+
 import org.springframework.util.StringUtils;
 
 import jakarta.servlet.FilterChain;
@@ -43,7 +46,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
     @Override
@@ -60,14 +63,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Obtiene usuario desde el token
-        username=jwtService.getUsernameFromToken(token);
+        username=jwtUtil.getUsernameFromToken(token);
 
         // Verifica si el username fue extraído del token y no hay una autenticación previa en el contexto de seguridad
         if (username!=null && SecurityContextHolder.getContext().getAuthentication()==null) {
             UserDetails userDetails=userDetailsService.loadUserByUsername(username);
             
             // Valida si el token es válido para el usuario
-            if (jwtService.isTokenValid(token, userDetails)) {
+            if (jwtUtil.isTokenValid(token, userDetails.getUsername())) {
                 // Crea un objeto de autenticación con los detalles del usuario y sus autoridades (roles)
                 UsernamePasswordAuthenticationToken authToken= new UsernamePasswordAuthenticationToken(
                     userDetails,

@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.prtec.auth.application.service.jwt.JwtService;
 import com.prtec.auth.domain.model.entities.User;
 
 /**

@@ -16,8 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.prtec.auth.application.service.AuthService;
+import com.prtec.auth.application.service.JwtService;
 import com.prtec.auth.application.service.UserService;
-import com.prtec.auth.application.service.jwt.JwtService;
 import com.prtec.auth.domain.model.entities.User;
 
 class AuthServiceTest {

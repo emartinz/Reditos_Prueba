@@ -4,8 +4,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.prtec.auth.application.service.jwt.JwtAuthenticationFilter;
-import com.prtec.auth.application.service.jwt.JwtService;
+import com.prtec.auth.application.utils.JwtUtil;
+import com.prtec.auth.config.JwtAuthenticationFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,7 +31,7 @@ class JwtAuthenticationFilterTest {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Mock
-    private JwtService jwtService;
+    private JwtUtil jwtUtil;
 
     @Mock
     private UserDetailsService userDetailsService;
@@ -65,9 +65,9 @@ class JwtAuthenticationFilterTest {
         String token = "validToken";
         UserDetails userDetails = new User("testuser", "password", Collections.emptyList());
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtService.getUsernameFromToken(token)).thenReturn("testuser");
+        when(jwtUtil.getUsernameFromToken(token)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
-        when(jwtService.isTokenValid(token, userDetails)).thenReturn(true);
+        when(jwtUtil.isTokenValid(token, userDetails.getUsername())).thenReturn(true);
 
         invokeDoFilterInternal(request, response, filterChain);
 
@@ -79,7 +79,7 @@ class JwtAuthenticationFilterTest {
     void testDoFilterInternalWithInvalidToken() throws Exception {
         String token = "invalidToken";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtService.getUsernameFromToken(token)).thenThrow(new IllegalArgumentException("Invalid token"));
+        when(jwtUtil.getUsernameFromToken(token)).thenThrow(new IllegalArgumentException("Invalid token"));
 
         Exception exception = assertThrows(Exception.class, () -> invokeDoFilterInternal(request, response, filterChain));
         assertTrue(exception.getCause() instanceof IllegalArgumentException);
