@@ -25,7 +25,9 @@ replay_pid*
 
 **/.git
 **/.gitignore
+**/.gitattributes
 **/.env
+**/.vscode
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
