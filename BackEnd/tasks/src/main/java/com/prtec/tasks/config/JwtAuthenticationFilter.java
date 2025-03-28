@@ -1,10 +1,7 @@
 package com.prtec.tasks.config;
 
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prtec.tasks.application.utils.JwtUtil;
 
 import jakarta.servlet.FilterChain;
@@ -58,22 +54,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        /*// Obtener todos los encabezados
-        Enumeration<String> headerNames = request.getHeaderNames();
-        Map<String, String> headersMap = new HashMap<>();
-        
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            String headerValue = request.getHeader(headerName);
-            headersMap.put(headerName, headerValue);
-        }
-
-        // Convertir el mapa a formato JSON usando Jackson
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonHeaders = objectMapper.writeValueAsString(headersMap);
-
-        // Imprimir los encabezados en formato JSON
-        logger.info("Encabezados de la solicitud: " + jsonHeaders);*/
 
         // Permitir que el navegador se comunique con el backend en caso de solicitudes preflight (OPTIONS)
         if ("OPTIONS".equals(request.getMethod())) {

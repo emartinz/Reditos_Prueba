@@ -225,7 +225,7 @@ public class TaskController {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Task> tasks = taskService.getTasksByUser(username, pageRequest);
 
-        return ResponseEntity.ok(new ApiResponseDTO<>(ApiResponseDTO.Status.SUCCESS, "Tus tareas", tasks));
+        return ResponseEntity.ok(new ApiResponseDTO<>(ApiResponseDTO.Status.SUCCESS, ApiResponseDTO.OK, tasks));
     }
 
 
@@ -295,17 +295,22 @@ public class TaskController {
                     .body(new ApiResponseDTO<>(ApiResponseDTO.Status.ERROR, "No autorizado", null));
         }
 
-        // Obtener el token y el ID del usuario
-        String token = authHeader.replace(BEARER_PREFIX, "");
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        
-        // Crear un objeto PageRequest con los parámetros de paginación
-        PageRequest pageRequest = PageRequest.of(page, size);
+        try {
+            // Obtener el token y el ID del usuario
+            String token = authHeader.replace(BEARER_PREFIX, "");
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            
+            // Crear un objeto PageRequest con los parámetros de paginación
+            PageRequest pageRequest = PageRequest.of(page, size);
 
-        // Obtener las tareas filtradas con paginación
-        Page<Task> tasks = taskService.getTasksByFilters(userId, title, status, priority, pageRequest);
+            // Obtener las tareas filtradas con paginación
+            Page<Task> tasks = taskService.getTasksByFilters(userId, title, status, priority, pageRequest);
 
-        // Retornar las tareas filtradas con paginación
-        return ResponseEntity.ok(new ApiResponseDTO<>(ApiResponseDTO.Status.SUCCESS, "Lista de tareas filtradas", tasks));
+            // Retornar las tareas filtradas con paginación
+            return ResponseEntity.ok(new ApiResponseDTO<>(ApiResponseDTO.Status.SUCCESS, "Lista de tareas filtradas", tasks));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponseDTO<>(ApiResponseDTO.Status.ERROR, "Error interno del servidor", null));
+        }
     }
 }
