@@ -1,6 +1,10 @@
 package com.prtec.tasks.application.service;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,14 +12,10 @@ import com.prtec.tasks.adapter.out.repository.ITaskRepository;
 import com.prtec.tasks.application.exceptions.TaskNotFoundException;
 import com.prtec.tasks.domain.model.entity.Task;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class TaskService {
-    public static final String TASK_NOT_FOUND_MESSAGE = "Task not found with id: ";
+    public static final String TASK_NOT_FOUND_MESSAGE = "No se encontró una tarea con id: ";
     private final ITaskRepository taskRepository;
 
     /**
@@ -54,24 +54,28 @@ public class TaskService {
     /**
      * Elimina una tarea por ID.
      * @param id Identificador de la tarea.
+     * @return boolean
      */
     @Transactional
-    public void deleteTask(Long id) {
-        if (!taskRepository.existsById(id)) {
-            throw new TaskNotFoundException(TASK_NOT_FOUND_MESSAGE + id);
+    public boolean deleteTask(Long id) {
+        if (taskRepository.existsById(id)) {
+            taskRepository.deleteById(id);
+            return true;  // La tarea fue eliminada con éxito
+        } else {
+            return false;  // La tarea no fue encontrada
         }
-        taskRepository.deleteById(id);
     }
 
     /**
-     * Obtiene una lista de tareas filtradas por estado y/o prioridad.
-     * @param userId
-     * @param title
-     * @param status
-     * @param priority
-     * @return
+     * Obtiene una lista de tareas filtradas por estado y/o prioridad, con soporte a paginación.
+     * @param userId ID del usuario
+     * @param title Título de la tarea (opcional)
+     * @param status Estado de la tarea (opcional)
+     * @param priority Prioridad de la tarea (opcional)
+     * @param pageable Parámetro de paginación que incluye la página y el tamaño
+     * @return Página de tareas filtradas
      */
-    public List<Task> getTasksByFilters(Long userId, String title, String status, String priority) {
+    public Page<Task> getTasksByFilters(Long userId, String title, String status, String priority, Pageable pageable) {
         if (userId == null) {
             throw new IllegalArgumentException("El ID del usuario es obligatorio.");
         }
@@ -83,7 +87,7 @@ public class TaskService {
             try {
                 taskStatus = Task.TaskStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("El estado proporcionado no es válido.");
+                throw new IllegalArgumentException("El estado de tarea proporcionado no es válido.");
             }
         }
 
@@ -95,8 +99,8 @@ public class TaskService {
             }
         }
 
-        return Optional.ofNullable(taskRepository.findByUserAndFilters(userId, title, taskStatus, taskPriority))
-                .orElse(Collections.emptyList());
+        // Devuelve una página de tareas filtradas utilizando el repositorio
+        return taskRepository.findByUserAndFilters(userId, title, taskStatus, taskPriority, pageable);
     }
 
     /**
@@ -111,9 +115,20 @@ public class TaskService {
 
     /**
      * Metodo para listar todas las tareas
+     * @param pageRequest
      * @return
      */
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    public Page<Task> getAllTasks(PageRequest pageRequest) {
+        return taskRepository.findAll(pageRequest);
+    }
+
+    /**
+     * Método para obtener las tareas de un usuario con paginación
+     * @param username
+     * @param pageRequest
+     * @return
+     */
+    public Page<Task> getTasksByUser(String username, PageRequest pageRequest) {
+        return taskRepository.findByUsername(username, pageRequest);
     }
 }

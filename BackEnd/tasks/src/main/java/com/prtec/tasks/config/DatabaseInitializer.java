@@ -87,7 +87,7 @@ public class DatabaseInitializer implements CommandLineRunner {
             );
 
             // Guardar tareas en la base de datos
-            tasks.forEach(task -> entityManager.persist(task));
+            tasks.forEach(entityManager::persist);
 
             logger.info("Datos iniciales cargados correctamente.");
         } catch (Exception e) {

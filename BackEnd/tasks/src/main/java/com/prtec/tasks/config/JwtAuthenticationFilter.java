@@ -1,7 +1,10 @@
 package com.prtec.tasks.config;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prtec.tasks.application.utils.JwtUtil;
 
 import jakarta.servlet.FilterChain;
@@ -19,6 +23,27 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Filtro de autenticación JWT.
+ *
+ * Se encarga de interceptar las solicitudes HTTP para verificar
+ * la validez de los tokens JWT. Si el token es válido, establece la autenticación
+ * en el contexto de seguridad de Spring Security.
+ *
+ * <p>Este filtro realiza las siguientes acciones:</p>
+ * <ul>
+ *     <li>Extrae el token JWT del encabezado Authorization.</li>
+ *     <li>Valida el token utilizando JwtUtil.</li>
+ *     <li>Carga los roles del usuario desde el token.</li>
+ *     <li>Establece la autenticación en el contexto de seguridad de Spring si el token es válido.</li>
+ * </ul>
+ *
+ * <p>Si el token es inválido o no está presente, el filtro simplemente pasa la solicitud
+ * al siguiente filtro sin establecer autenticación.</p>
+ *
+ * @author Edgar Andres
+ * @version 1.0
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -33,6 +58,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        /*// Obtener todos los encabezados
+        Enumeration<String> headerNames = request.getHeaderNames();
+        Map<String, String> headersMap = new HashMap<>();
+        
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String headerValue = request.getHeader(headerName);
+            headersMap.put(headerName, headerValue);
+        }
+
+        // Convertir el mapa a formato JSON usando Jackson
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonHeaders = objectMapper.writeValueAsString(headersMap);
+
+        // Imprimir los encabezados en formato JSON
+        logger.info("Encabezados de la solicitud: " + jsonHeaders);*/
+
+        // Permitir que el navegador se comunique con el backend en caso de solicitudes preflight (OPTIONS)
+        if ("OPTIONS".equals(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);   // OK para preflight
+            response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200"); // Origen permitido
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Métodos permitidos
+            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type"); // Encabezados permitidos
+            response.setHeader("Access-Control-Allow-Credentials", "true");   // Permite credenciales
+            return;
+        }
+
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

@@ -20,6 +20,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
+/**
+ * Utilidad para trabajar con JWT
+ * @author Edgar Andres
+ * @version 1.0
+ */
 @Component
 public class JwtUtil {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
@@ -133,6 +138,11 @@ public class JwtUtil {
         }
     }   
 
+    /**
+     * Metodo para extraer los roles desde el token
+     * @param token
+     * @return List<GrantedAuthority>
+     */
     public List<GrantedAuthority> getRolesFromToken(String token) {
         try {
             List<?> roles = getPayloadFromToken(token).get("roles", List.class);
@@ -154,6 +164,12 @@ public class JwtUtil {
         }
     }
     
+    /**
+     * Metodo para validar si un token es valido
+     * @param token
+     * @param currentUsername
+     * @return boolean
+     */ 
     public boolean isTokenValid(String token, String currentUsername) {
         try {
             Jwts.parser()
