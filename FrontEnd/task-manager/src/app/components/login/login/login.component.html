@@ -2,10 +2,10 @@
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <!-- Login Form -->
-            <div class="col-md-9 col-lg-6 col-xl-5" *ngIf="!isRegister">
-                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp" class="img-fluid" alt="Sample image">
+            <div class="col-md-9 col-lg-6 col-xl-5">
+                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp" class="img-fluid" alt="Sample">
             </div>
-            <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+            <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1"  *ngIf="!isRegister">
                 <form (ngSubmit)="login()">
                     <div data-mdb-input-init class="form-outline mb-4">
                         <input type="text" id="username" class="form-control form-control-lg" placeholder="Ingresa tu usuario" [(ngModel)]="username" name="username" required />
@@ -26,14 +26,22 @@
             </div>
 
             <!-- Register Form -->
-            <div class="col-md-9 col-lg-6 col-xl-5" *ngIf="isRegister">
-                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp" class="img-fluid" alt="Sample image">
-            </div>
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1" *ngIf="isRegister">
                 <form (ngSubmit)="register()">
                     <div data-mdb-input-init class="form-outline mb-4">
                         <input type="text" id="newUsername" class="form-control form-control-lg" placeholder="Crea tu usuario" [(ngModel)]="newUsername" name="newUsername" required />
                     </div>
+                    
+                    <div data-mdb-input-init class="form-outline mb-4">
+                        <input type="text" id="firstName" class="form-control form-control-lg"
+                                placeholder="Ingresa tu nombre" [(ngModel)]="firstName" name="firstName" required />
+                    </div>
+                    
+                    <div data-mdb-input-init class="form-outline mb-3"> 
+                        <input type="text" id="lastName" class="form-control form-control-lg"
+                                placeholder="Ingresa tu apellido" [(ngModel)]="lastName" name="lastName" required />
+                    </div>
+ 
                     <div data-mdb-input-init class="form-outline mb-4">
                         <input type="email" id="email" class="form-control form-control-lg" placeholder="Ingresa tu correo electrónico" [(ngModel)]="email" name="email" required />
                     </div>

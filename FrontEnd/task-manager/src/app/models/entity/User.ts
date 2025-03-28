@@ -4,8 +4,12 @@ export interface Role {
 }
 
 export interface User {
-    id: number;
+    id?: number;
+    userid: number;
     username: string;
-    //password: string;
-    roles: Role[];
+    password?: string;
+    email?: string;
+    firstName: string;
+    lastName: string;
+    roles?: { id: number }[];
 }

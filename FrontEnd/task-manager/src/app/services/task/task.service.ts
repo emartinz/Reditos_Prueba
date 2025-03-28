@@ -23,7 +23,7 @@ export class TaskService {
     const token = localStorage.getItem('jwt');
     let headers = new HttpHeaders()
       .set('Authorization', `Bearer ${token}`)  // Encabezado de autorización
-      .set('Content-Type', 'application/json')  // Tipo de contenido, si se aplica
+      .set('Content-Type', 'application/json')  // Tipo de contenido
       .set('Accept', 'application/json')  // Tipo de respuesta esperada
       .set('Cache-Control', 'no-cache');  // Deshabilitar caché
     

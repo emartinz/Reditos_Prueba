@@ -20,11 +20,13 @@ export class AuthService {
     );
   }
 
-  register(username: string, password: string, roles: any[]): Observable<any> {
-    const headers = new HttpHeaders().set(
-      'Authorization',
-      `Bearer ${this.token}`
-    );
+  register(
+    username: string, 
+    password: string, 
+    roles: any[]
+  ): Observable<any> {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+  
     return this.http.post<ApiResponse<User>>(
       `${this.baseUrl}/register`,
       { username, password, roles },
