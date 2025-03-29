@@ -51,7 +51,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {        
+            throws ServletException, IOException {     
+
+        // Permitir que el navegador se comunique con el backend en caso de solicitudes preflight (OPTIONS)
+        if ("OPTIONS".equals(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);   // OK para preflight
+            response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200"); // Origen permitido
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Métodos permitidos
+            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type"); // Encabezados permitidos
+            response.setHeader("Access-Control-Allow-Credentials", "true");   // Permite credenciales
+            return;
+        }
+
+        String requestURI = request.getRequestURI();
+        // Rutas públicas excluidas de este filtro
+        if (requestURI.startsWith("/api/register") || 
+            requestURI.startsWith("/auth") || 
+            requestURI.startsWith("/swagger") || 
+            requestURI.startsWith("/v3/api-docs")) {
+            
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String username;
 
         // Valida si request tiene token, si no lo tiene, permite que el SecurityConfig continue

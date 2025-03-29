@@ -68,6 +68,7 @@ class JwtAuthenticationFilterTest {
         when(jwtUtil.getUsernameFromToken(token)).thenReturn("testuser");
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
         when(jwtUtil.isTokenValid(token, userDetails.getUsername())).thenReturn(true);
+        when(request.getRequestURI()).thenReturn("/algun-endpoint");
 
         invokeDoFilterInternal(request, response, filterChain);
 
@@ -80,6 +81,7 @@ class JwtAuthenticationFilterTest {
         String token = "invalidToken";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(jwtUtil.getUsernameFromToken(token)).thenThrow(new IllegalArgumentException("Invalid token"));
+        when(request.getRequestURI()).thenReturn("/algun-endpoint");
 
         Exception exception = assertThrows(Exception.class, () -> invokeDoFilterInternal(request, response, filterChain));
         assertTrue(exception.getCause() instanceof IllegalArgumentException);
@@ -92,7 +94,7 @@ class JwtAuthenticationFilterTest {
     @Test
     void testDoFilterInternalWithoutToken() throws Exception {
         when(request.getHeader("Authorization")).thenReturn(null);
-
+        when(request.getRequestURI()).thenReturn("/algun-endpoint");
         invokeDoFilterInternal(request, response, filterChain);
 
         verify(securityContext, never()).setAuthentication(any());

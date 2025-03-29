@@ -21,8 +21,7 @@ class JwtUtilTest {
     
     @Mock
     private Claims claims;
-    
-    private final String jwtSecret = "supersecretkeythatisverysecureandlongenough";
+    private final String jwtSecret = "misuperarchirencontrahipermegaextremaclavee";
     private final long expirationTimeMinutes = 60;
     
     @BeforeEach
@@ -40,42 +39,48 @@ class JwtUtilTest {
     @Test
     void testGetUsernameFromToken() {
         String token = jwtUtil.createToken(Map.of(), "testUser");
+        System.out.println("testGetUsernameFromToken: " + token);
         assertEquals("testUser", jwtUtil.getUsernameFromToken(token));
     }
     
     @Test
     void testGetRolesFromTokenWithValidRoles() {
-        String token = jwtUtil.createToken(Map.of("roles", List.of("ROLE_USER", "ROLE_ADMIN")), "testUser");
+        String token = jwtUtil.createToken(Map.of("roles", List.of("USER", "ADMIN")), "testUser");
+        System.out.println("testGetRolesFromTokenWithValidRoles: " + token);
         List<GrantedAuthority> roles = jwtUtil.getRolesFromToken(token);
         assertEquals(2, roles.size());
-        assertTrue(roles.stream().anyMatch(role -> role.getAuthority().equals("ROLE_USER")));
-        assertTrue(roles.stream().anyMatch(role -> role.getAuthority().equals("ROLE_ADMIN")));
+        assertTrue(roles.stream().anyMatch(role -> role.getAuthority().equals("USER")));
+        assertTrue(roles.stream().anyMatch(role -> role.getAuthority().equals("ADMIN")));
     }
     
     @Test
     void testGetRolesFromTokenWithNoRoles() {
         String token = jwtUtil.createToken(Map.of(), "testUser");
+        System.out.println("testGetRolesFromTokenWithNoRoles: " + token);
         List<GrantedAuthority> roles = jwtUtil.getRolesFromToken(token);
         assertTrue(roles.isEmpty());
     }
     
     @Test
     void testGetRolesFromTokenWithInvalidRoles() {
-        String token = jwtUtil.createToken(Map.of("roles", List.of(123, true, "ROLE_USER")), "testUser");
+        String token = jwtUtil.createToken(Map.of("roles", List.of(123, true, "USER")), "testUser");
+        System.out.println("testGetRolesFromTokenWithInvalidRoles: " + token);
         List<GrantedAuthority> roles = jwtUtil.getRolesFromToken(token);
         assertEquals(1, roles.size());
-        assertEquals("ROLE_USER", roles.get(0).getAuthority());
+        assertEquals("USER", roles.get(0).getAuthority());
     }
     
     @Test
     void testIsTokenExpired() {
         String token = jwtUtil.createToken(Map.of(), "testUser");
+        System.out.println("testIsTokenExpired: " + token);
         assertFalse(jwtUtil.isTokenExpired(token));
     }
     
     @Test
     void testIsTokenValid() {
         String token = jwtUtil.createToken(Map.of(), "testUser");
+        System.out.println("testIsTokenValid: " + token);
         assertTrue(jwtUtil.isTokenValid(token, "testUser"));
         assertFalse(jwtUtil.isTokenValid(token, "wrongUser"));
     }
