@@ -1,0 +1,31 @@
+spring:
+    application:
+        name: auth
+    output:
+        ansi:
+            enabled: always
+    config:
+        import: optional:file:.env[.properties]
+    datasource:
+        url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_EXTRA_PARAMS}
+        username: ${DB_USER}
+        password: ${DB_PASS}
+    jpa:
+        #open-in-view: false
+        hibernate:
+            ddl-auto: create-drop
+            #ddl-auto: update
+        show-sql: false
+    security:
+        user:
+            enabled: false
+server:
+    port: 8081
+logging:
+    level:
+        root: INFO
+custom:
+    database:
+        name: ${DB_NAME}
+jwt:
+    secret: ${JWT_SECRET}

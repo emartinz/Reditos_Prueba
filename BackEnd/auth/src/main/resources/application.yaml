@@ -1,0 +1,35 @@
+spring:
+    application:
+        name: auth
+    output:
+        ansi:
+            enabled: always
+    config:
+        import: optional:file:.env[.properties]
+    datasource:
+        url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_EXTRA_PARAMS}
+        username: ${DB_USER}
+        password: ${DB_PASS}
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
+    jpa:
+        open-in-view: false
+        hibernate:
+            ddl-auto: create-drop
+            #ddl-auto: update
+        show-sql: false
+    security:
+        user:
+            enabled: false
+logging:
+    level:
+        root: INFO
+        org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator: ERROR
+        org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: ERROR
+
+custom:
+    database:
+        name: ${DB_NAME}
+jwt:
+    secret: ${JWT_SECRET}
+    expirationTimeMinutes: 60
