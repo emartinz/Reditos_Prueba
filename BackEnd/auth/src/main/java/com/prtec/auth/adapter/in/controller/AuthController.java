@@ -3,6 +3,7 @@ package com.prtec.auth.adapter.in.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -115,6 +116,7 @@ public class AuthController {
             schema = @Schema(implementation = ApiResponseDTO.class)) })
     })
     @PostMapping("/login")
+    @CrossOrigin(origins = {"localhost:4200", "localhost"})
     public ResponseEntity<ApiResponseDTO<String>> login(@RequestBody AuthRequest authRequest) {
         try {
             String token = authService.authenticate(authRequest.getUsername(), authRequest.getPassword());

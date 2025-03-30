@@ -1,3 +1,6 @@
+server:
+    address: 0.0.0.0
+    port: 8080
 spring:
     application:
         name: auth
@@ -20,12 +23,12 @@ spring:
         show-sql: false
     security:
         user:
-            enabled: false
+            password:
 logging:
     level:
         root: INFO
-        org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator: ERROR
-        org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: ERROR
+        '[org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator]': ERROR
+        '[org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer"]': ERROR
 
 custom:
     database:

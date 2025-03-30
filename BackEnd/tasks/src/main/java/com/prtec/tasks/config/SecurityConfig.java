@@ -52,8 +52,8 @@ public class SecurityConfig {
                 ).permitAll()
                 // Permitir todas las peticiones OPTIONS a cualquier ruta (Preflight)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/api/tasks/**").hasAuthority("USER")
+                .requestMatchers("/api/tasks/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             // Personalizacion para poder mostrar que no cumple con el rol requerido

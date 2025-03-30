@@ -43,7 +43,7 @@ class AuthUtilsTest {
         String authHeader = "invalidToken";
         ResponseEntity<String> response = AuthUtils.getTokenFromAuthHeader(authHeader);
         
-        assertEquals("No autorizado", response.getBody());
+        assertEquals("Token no autorizado.", response.getBody());
         assertEquals(401, response.getStatusCode().value());
     }
 

@@ -3,12 +3,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../../models/general/ApiResponse';
 import { User } from '../../models/entity/User';
+import { constants } from '../../config/constants';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly baseUrl = 'http://localhost:8080/api';
+  private readonly baseUrl = constants.urlAuth + '/api';
   private token: string | null = null;
 
   constructor(private readonly http: HttpClient) {}

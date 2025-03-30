@@ -1,6 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskService } from '../../../services/task/task.service';
 import { Task, TaskPriority, TaskStatus } from '../../../models/entity/Task';
+<<<<<<< Updated upstream
+=======
+import { HttpClient } from '@angular/common/http';
+
+>>>>>>> Stashed changes
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,6 +21,7 @@ import { Router } from '@angular/router';
   styleUrl: './tasks.component.scss'
 })
 export class TasksComponent implements OnInit {
+  isAdmin: boolean = false; // Variable para identificar si el usuario es admin
   tasks: Task[] = [];
   taskStatuses = Object.values(TaskStatus);
   taskPriorities = Object.values(TaskPriority);
@@ -30,23 +36,54 @@ export class TasksComponent implements OnInit {
     createdAt: new Date(), 
     updatedAt: new Date() 
   };
+<<<<<<< Updated upstream
   
+=======
+
+  searchParams = {
+    title: '',
+    status: '',
+    priority: ''
+  };
+
+  defaultItemsPerPage = 5;
+>>>>>>> Stashed changes
   username: string | null = '';
   number = 5;
   currentPage = 0;
   totalPages = 1;
-  itemsPerPage = 3;
+  itemsPerPage = this.defaultItemsPerPage;
+  isFiltered = false;
 
   constructor(private readonly taskService: TaskService, private readonly router: Router) {}
 
   ngOnInit(): void {
     this.checkToken();
     this.username = localStorage.getItem('username');
+  
+    const roles: string[] = this.taskService.getUserRoles() || []; // Garantiza que siempre sea un array
+    this.isAdmin = roles.some(role => (role ? role.toLowerCase() === 'admin' : false)); // Verifica que role no sea undefined
+  
     this.loadTasks();
   }
 
-  loadTasks() {
-    this.taskService.getUserTasks(this.currentPage, this.itemsPerPage).subscribe({
+  loadTasks(page?: number): void {
+    // Si se proporciona un número de página, actualizamos currentPage
+    if (page !== undefined) {
+      this.currentPage = page;
+    }
+  
+    let tasksObservable;
+  
+    // Si es admin, puedes usar un servicio diferente si es necesario
+    if (this.isAdmin) {
+      tasksObservable = this.taskService.getAllTasks(this.currentPage, this.itemsPerPage);  // Cambiar a un método específico para Admin si es necesario
+    } else {
+      tasksObservable = this.taskService.getUserTasks(this.currentPage, this.itemsPerPage);
+    }
+  
+    // Ahora realizamos la suscripción con el observable adecuado
+    tasksObservable.subscribe({
       next: (response: any) => {
         if (response.status === 'SUCCESS') {
           this.tasks = response.data.content;
@@ -55,7 +92,7 @@ export class TasksComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Login error:', error);
+        console.error('Error al obtener tareas:', error);
       }
     });
   }
@@ -88,6 +125,7 @@ export class TasksComponent implements OnInit {
       description: '',
       status: 'PENDIENTE',
       priority: 'MEDIA',
+      page: 0
     };
     this.taskService.createTask(newTask).subscribe(() => {
       this.loadTasks();
@@ -121,6 +159,26 @@ export class TasksComponent implements OnInit {
     };
   }
 
+  nextPage(): void {
+    if (this.currentPage + 1 <= this.totalPages) {
+      this.currentPage++;
+  
+      // Verificar si hay filtros establecidos
+      if (this.isFiltered) { this.searchTasks(); }
+      else { this.loadTasks(); }
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 0) { // Verifica que no sea la primera página
+      this.currentPage--;
+
+      // Verificar si hay filtros establecidos
+      if (this.isFiltered) { this.searchTasks(); }
+      else { this.loadTasks(); }
+    }
+  }
+  
   changePage(page: number): void {
     if (page >= 0 && page <= this.totalPages) {
       this.currentPage = page;
@@ -128,6 +186,20 @@ export class TasksComponent implements OnInit {
     }
   }
 
+<<<<<<< Updated upstream
+=======
+  clearSearch() {
+    this.searchParams = {
+        title: '',
+        status: '',
+        priority: ''
+    };
+    this.itemsPerPage = this.defaultItemsPerPage;
+    this.loadTasks(0);
+    this.isFiltered=false
+}
+
+>>>>>>> Stashed changes
   checkToken(): void {
     const token = localStorage.getItem('jwt'); // Obtener el token desde el localStorage
 
@@ -164,4 +236,29 @@ export class TasksComponent implements OnInit {
     // Redirige al login
     this.router.navigate(['/login']);
   }
+<<<<<<< Updated upstream
+=======
+
+  searchTasks(page?: number): void {
+    if (page !== undefined) {
+      this.currentPage = page;
+    }
+
+    this.taskService.filterTasks(
+      this.searchParams.title,
+      this.searchParams.status,
+      this.searchParams.priority,
+      this.currentPage,
+      this.itemsPerPage,
+      this.isAdmin
+    ).subscribe((response: any) => {
+      if (response.status === 'SUCCESS' && response.data) {
+        this.tasks = response.data.content;
+        this.totalPages = response.data.totalPages - 1;
+        this.currentPage = response.data.pageable.pageNumber;
+        this.isFiltered = true;
+      }
+    });
+  }
+>>>>>>> Stashed changes
 }

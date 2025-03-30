@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.prtec.tasks.application.exceptions.TokenException;
 import com.prtec.tasks.application.service.TaskService;
 import com.prtec.tasks.domain.model.entity.Task;
 
@@ -28,7 +29,7 @@ public class AuthUtils {
     public static ResponseEntity<String> getTokenFromAuthHeader(String authHeader) {
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("No autorizado");
+                    .body("Token no autorizado.");
         }
         return ResponseEntity.ok(authHeader.replace(BEARER_PREFIX, ""));
     }
@@ -110,7 +111,7 @@ public class AuthUtils {
      * @param jwtUtil
      * @return boolean
      */
-    public static boolean isAdminUser(String authHeader, JwtUtil jwtUtil) {
+    public static boolean isAdminUser(String authHeader, JwtUtil jwtUtil) throws TokenException {
         return validateUserRole(authHeader, jwtUtil, ADMIN_ROLE_NAME);
     }
 
@@ -127,7 +128,7 @@ public class AuthUtils {
             
         // Si el token es inválido o está ausente, retorna false
         if (tokenResponse.getStatusCode() == HttpStatus.UNAUTHORIZED || tokenResponse.getBody() == null) {
-            return false;
+            throw new TokenException("Token no autorizado.");
         }
 
         String token = tokenResponse.getBody();

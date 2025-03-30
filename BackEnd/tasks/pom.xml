@@ -67,6 +67,12 @@
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>8.0.2.Final</version>
+		</dependency>
+
 		<!-- SWAGGER -->
 		<dependency>
 			<groupId>org.springdoc</groupId>

@@ -12,7 +12,7 @@
 	</div>
 </nav>
 <div class="container">
-    <button (click)="preCreateTask()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
+    <button (click)="preCreateTask()" id="btnNewTask" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
         Crear Nueva Tarea
     </button>
 
@@ -70,6 +70,7 @@
         </div>
     </div>
 
+<<<<<<< Updated upstream
     <div class="task-list mt-4">
         <table class="table">
             <thead>
@@ -115,5 +116,72 @@
                 {{ number }}
             </option>
         </select>
+=======
+    <!-- Filtro de búsqueda -->
+    <form (submit)="searchTasks(0)" class="d-flex align-items-center gap-2 mb-3">
+        <input type="text" [(ngModel)]="searchParams.title" name="title" class="form-control" placeholder="Buscar por título" />
+        
+        <select [(ngModel)]="searchParams.status" name="status" class="form-select">
+            <option value="">Todos los estados</option>
+            <option *ngFor="let status of taskStatuses" [value]="status">
+                {{ status }}
+            </option>
+        </select>
+
+        <select [(ngModel)]="searchParams.priority" name="priority" class="form-select">
+            <option value="">Todas las prioridades</option>
+            <option *ngFor="let priority of taskPriorities" [value]="priority">
+                {{ priority }}
+            </option>
+        </select>
+
+        <button type="submit" class="btn btn-primary">Buscar</button>
+        <button type="button" class="btn btn-secondary" (click)="clearSearch()">Limpiar</button>
+    </form>
+
+    <!-- Lista de tareas -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Fecha de vencimiento</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let task of tasks">
+                <td>{{ task.title }}</td>
+                <td>{{ task.description }}</td>
+                <td>{{ task.status }}</td>
+                <td>{{ task.priority }}</td>
+                <td>{{ task.dueDate | date }}</td>
+                <td class="d-flex gap-1">
+                    <button (click)="updateTask(task)" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#taskModal">Editar</button>
+                    <button (click)="task.id ? deleteTask(task.id) : null" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Paginación y selección de elementos por página -->
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            <button (click)="prevPage()" [disabled]="currentPage === 0" class="btn btn-outline-primary me-2">Anterior</button>
+            <span>{{ currentPage < 0 ? 0 : currentPage + 1 }} de {{ totalPages + 1 }}</span>
+            <button (click)="nextPage()" [disabled]="(currentPage < 0 ? 0 : currentPage + 1) >= totalPages + 1" class="btn btn-outline-primary ms-2">Siguiente</button>
+        </div>
+
+        <div>
+            <label for="itemsPerPage" class="form-label me-2">Tareas por página:</label>
+            <select id="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="loadTasks(0)" class="form-select">
+                <option *ngFor="let number of [5, 10, 20, 50]" [value]="number">
+                    {{ number }}
+                </option>
+            </select>
+        </div>
+>>>>>>> Stashed changes
     </div>
 </div>

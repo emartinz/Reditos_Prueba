@@ -1,6 +1,8 @@
 package com.prtec.auth.config;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
@@ -55,11 +57,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Permitir que el navegador se comunique con el backend en caso de solicitudes preflight (OPTIONS)
         if ("OPTIONS".equals(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);   // OK para preflight
-            response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200"); // Origen permitido
-            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Métodos permitidos
-            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type"); // Encabezados permitidos
-            response.setHeader("Access-Control-Allow-Credentials", "true");   // Permite credenciales
+            response.setStatus(HttpServletResponse.SC_OK); // OK para preflight
+        
+            // Obtener el origen de la solicitud
+            String origin = request.getHeader("Origin");
+        
+            // Lista de orígenes permitidos
+            List<String> allowedOrigins = Arrays.asList(
+                "http://localhost:4200", "http://localhost", "http://host.docker.internal"
+            );
+        
+            // Si el origen de la solicitud está en la lista, lo permitimos
+            if (allowedOrigins.contains(origin)) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+            }
+        
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+            response.setHeader("Access-Control-Allow-Credentials", "true"); // Permitir credenciales
+        
             return;
         }
 
