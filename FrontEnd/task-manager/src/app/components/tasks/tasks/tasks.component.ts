@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskService } from '../../../services/task/task.service';
 import { Task, TaskPriority, TaskStatus } from '../../../models/entity/Task';
+import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -37,7 +38,6 @@ export class TasksComponent implements OnInit {
     status: '',
     priority: ''
   };
-
   defaultItemsPerPage = 5;
   username: string | null = '';
   number = 5;
@@ -46,7 +46,7 @@ export class TasksComponent implements OnInit {
   itemsPerPage = this.defaultItemsPerPage;
   isFiltered = false;
 
-  constructor(private readonly taskService: TaskService, private readonly router: Router) {}
+  constructor(private readonly taskService: TaskService, private readonly router: Router, private readonly http: HttpClient) {}
 
   ngOnInit(): void {
     this.checkToken();
@@ -148,6 +148,7 @@ export class TasksComponent implements OnInit {
       createdAt: new Date(), 
       updatedAt: new Date() 
     };
+    
   }
 
   nextPage(): void {
@@ -186,7 +187,7 @@ export class TasksComponent implements OnInit {
     this.itemsPerPage = this.defaultItemsPerPage;
     this.loadTasks(0);
     this.isFiltered=false
-}
+  }
 
   checkToken(): void {
     const token = localStorage.getItem('jwt'); // Obtener el token desde el localStorage

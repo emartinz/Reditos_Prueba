@@ -20,6 +20,8 @@ Este proyecto fue desarrollado como parte de una prueba técnica. Este proyecto 
     - [Requisitos](#requisitos)
   - [Configuración](#configuración)
   - [Instalación y Ejecución](#instalación-y-ejecución)
+    - [**Instalación:**](#instalación-1)
+    - [**Ejecución:**](#ejecución)
   - [Endpoints principales](#endpoints-principales)
     - [Registro y Autenticación](#registro-y-autenticación)
     - [Gestión de Tareas](#gestión-de-tareas)
@@ -100,11 +102,22 @@ JWT_SECRET=${Secret key de por lo menos 32 caracteres}$
 
 ## Instalación y Ejecución
 
-```bash
-git clone https://github.com/emartinz/Reditos_Prueba.git
-cd Reditos_Prueba
-docker compose --env-file .env -f docker.compose.yml up --build -d
-```
+### **Instalación:**
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/emartinz/Reditos_Prueba.git
+   ```
+2. Acceder a la carpeta descargada:
+   ```bash
+   cd Reditos_Prueba
+   ```
+3. Desplegar contenedores de Docker utilizando el archivo de configuración `.env` y `docker.compose.yml`:
+   ```bash
+   docker compose --env-file .env -f docker.compose.yml up --build -d
+   ```
+### **Ejecución:**
+Una vez finalice el despliegue podrá ingresar a la interfaz web del Gestor de Tareas
+http://localhost:4200
 
 ## Endpoints principales
 
