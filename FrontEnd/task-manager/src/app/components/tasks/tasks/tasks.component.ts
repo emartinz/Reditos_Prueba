@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskService } from '../../../services/task/task.service';
 import { Task, TaskPriority, TaskStatus } from '../../../models/entity/Task';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-
+import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,6 +17,7 @@ import { Router } from '@angular/router';
   styleUrl: './tasks.component.scss'
 })
 export class TasksComponent implements OnInit {
+  isAdmin: boolean = false; // Variable para identificar si el usuario es admin
   tasks: Task[] = [];
   taskStatuses = Object.values(TaskStatus);
   taskPriorities = Object.values(TaskPriority);
@@ -39,23 +39,42 @@ export class TasksComponent implements OnInit {
     priority: ''
   };
   defaultItemsPerPage = 5;
-  
   username: string | null = '';
   number = 5;
   currentPage = 0;
   totalPages = 1;
-  itemsPerPage = 3;
+  itemsPerPage = this.defaultItemsPerPage;
+  isFiltered = false;
 
   constructor(private readonly taskService: TaskService, private readonly router: Router, private readonly http: HttpClient) {}
 
   ngOnInit(): void {
     this.checkToken();
     this.username = localStorage.getItem('username');
+  
+    const roles: string[] = this.taskService.getUserRoles() || []; // Garantiza que siempre sea un array
+    this.isAdmin = roles.some(role => (role ? role.toLowerCase() === 'admin' : false)); // Verifica que role no sea undefined
+  
     this.loadTasks();
   }
 
-  loadTasks() {
-    this.taskService.getUserTasks(this.currentPage, this.itemsPerPage).subscribe({
+  loadTasks(page?: number): void {
+    // Si se proporciona un número de página, actualizamos currentPage
+    if (page !== undefined) {
+      this.currentPage = page;
+    }
+  
+    let tasksObservable;
+  
+    // Si es admin, puedes usar un servicio diferente si es necesario
+    if (this.isAdmin) {
+      tasksObservable = this.taskService.getAllTasks(this.currentPage, this.itemsPerPage);  // Cambiar a un método específico para Admin si es necesario
+    } else {
+      tasksObservable = this.taskService.getUserTasks(this.currentPage, this.itemsPerPage);
+    }
+  
+    // Ahora realizamos la suscripción con el observable adecuado
+    tasksObservable.subscribe({
       next: (response: any) => {
         if (response.status === 'SUCCESS') {
           this.tasks = response.data.content;
@@ -64,7 +83,7 @@ export class TasksComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Login error:', error);
+        console.error('Error al obtener tareas:', error);
       }
     });
   }
@@ -97,6 +116,7 @@ export class TasksComponent implements OnInit {
       description: '',
       status: 'PENDIENTE',
       priority: 'MEDIA',
+      page: 0
     };
     this.taskService.createTask(newTask).subscribe(() => {
       this.loadTasks();
@@ -131,6 +151,26 @@ export class TasksComponent implements OnInit {
     
   }
 
+  nextPage(): void {
+    if (this.currentPage + 1 <= this.totalPages) {
+      this.currentPage++;
+  
+      // Verificar si hay filtros establecidos
+      if (this.isFiltered) { this.searchTasks(); }
+      else { this.loadTasks(); }
+    }
+  }
+
+  prevPage(): void {
+    if (this.currentPage > 0) { // Verifica que no sea la primera página
+      this.currentPage--;
+
+      // Verificar si hay filtros establecidos
+      if (this.isFiltered) { this.searchTasks(); }
+      else { this.loadTasks(); }
+    }
+  }
+  
   changePage(page: number): void {
     if (page >= 0 && page <= this.totalPages) {
       this.currentPage = page;
@@ -145,8 +185,9 @@ export class TasksComponent implements OnInit {
         priority: ''
     };
     this.itemsPerPage = this.defaultItemsPerPage;
-    this.loadTasks();
-}
+    this.loadTasks(0);
+    this.isFiltered=false
+  }
 
   checkToken(): void {
     const token = localStorage.getItem('jwt'); // Obtener el token desde el localStorage
@@ -185,30 +226,24 @@ export class TasksComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  searchTasks() {
-    const queryParams = new URLSearchParams();
-  
-    if (this.searchParams.title) {
-      queryParams.append('title', this.searchParams.title);
+  searchTasks(page?: number): void {
+    if (page !== undefined) {
+      this.currentPage = page;
     }
-    if (this.searchParams.status) {
-      queryParams.append('status', this.searchParams.status);
-    }
-    if (this.searchParams.priority) {
-      queryParams.append('priority', this.searchParams.priority);
-    }
-  
-    queryParams.append('page', this.currentPage.toString());
-    queryParams.append('size', this.itemsPerPage.toString());
-    const token = localStorage.getItem('jwt');
-    
-    this.http.get(`http://localhost:8081/api/tasks/filter?${queryParams.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).subscribe((response: any) => {
+
+    this.taskService.filterTasks(
+      this.searchParams.title,
+      this.searchParams.status,
+      this.searchParams.priority,
+      this.currentPage,
+      this.itemsPerPage,
+      this.isAdmin
+    ).subscribe((response: any) => {
       if (response.status === 'SUCCESS' && response.data) {
         this.tasks = response.data.content;
-        this.totalPages = response.data.totalPages;
+        this.totalPages = response.data.totalPages - 1;
         this.currentPage = response.data.pageable.pageNumber;
+        this.isFiltered = true;
       }
     });
   }

@@ -76,13 +76,9 @@ public class TaskService {
      * @return Página de tareas filtradas
      */
     public Page<Task> getTasksByFilters(Long userId, String title, String status, String priority, Pageable pageable) {
-        if (userId == null) {
-            throw new IllegalArgumentException("El ID del usuario es obligatorio.");
-        }
-
         Task.TaskStatus taskStatus = null;
         Task.TaskPriority taskPriority = null;
-
+    
         if (status != null) {
             try {
                 taskStatus = Task.TaskStatus.valueOf(status.toUpperCase());
@@ -90,7 +86,7 @@ public class TaskService {
                 throw new IllegalArgumentException("El estado de tarea proporcionado no es válido.");
             }
         }
-
+    
         if (priority != null) {
             try {
                 taskPriority = Task.TaskPriority.valueOf(priority.toUpperCase());
@@ -98,9 +94,12 @@ public class TaskService {
                 throw new IllegalArgumentException("La prioridad proporcionada no es válida.");
             }
         }
-
-        // Devuelve una página de tareas filtradas utilizando el repositorio
-        return taskRepository.findByUserAndFilters(userId, title, taskStatus, taskPriority, pageable);
+    
+        if (userId != null) {
+            return taskRepository.findByUserAndFilters(userId, title, taskStatus, taskPriority, pageable);
+        } else {
+            return taskRepository.findByFilters(title, taskStatus, taskPriority, pageable); // Para admin
+        }
     }
 
     /**

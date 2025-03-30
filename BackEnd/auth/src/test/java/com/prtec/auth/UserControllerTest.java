@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
 
+@SuppressWarnings("null")
 class UserControllerTest {
 
     @InjectMocks

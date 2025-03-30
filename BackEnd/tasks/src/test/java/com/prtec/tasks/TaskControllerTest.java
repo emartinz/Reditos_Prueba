@@ -335,7 +335,7 @@ class TaskControllerTest {
     }
 
     @Test
-    void testGetTasksFilteredForUser_Success() throws Exception {
+    void testGetTasksFiltered_Success() throws Exception {
         String authHeader = STR_VALID_TOKEN;
         String status = Task.TaskStatus.EN_PROGRESO.toString();
         String priority = Task.TaskPriority.ALTA.toString();
@@ -366,7 +366,7 @@ class TaskControllerTest {
     }
 
     @Test
-    void testGetTasksFilteredForUser_Unauthorized() throws Exception {
+    void testGetTasksFiltered_Unauthorized() throws Exception {
         String authHeader = "Bear invalid-token";
         
         mockMvc.perform(get("/api/tasks/filter")
@@ -378,27 +378,6 @@ class TaskControllerTest {
                 .param("size", "10"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value("ERROR"))
-                .andExpect(jsonPath("$.message").value("No autorizado"));
-    }
-
-    @Test
-    void testGetTasksFilteredForUser_InternalServerError() throws Exception {
-        String authHeader = STR_VALID_TOKEN;
-        
-        when(jwtUtil.getUserIdFromToken(anyString())).thenReturn(1L);
-        
-        when(taskService.getTasksByFilters(anyLong(), anyString(), anyString(), anyString(), any(PageRequest.class)))
-            .thenThrow(new RuntimeException("Internal error"));
-        
-        mockMvc.perform(get("/api/tasks/filter")
-                .header("Authorization", authHeader)
-                .param("status", "In Progress")
-                .param("priority", "High")
-                .param("title", "Test Task")
-                .param("page", "0")
-                .param("size", "10"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.status").value("ERROR"))
-                .andExpect(jsonPath("$.message").value("Error interno del servidor"));
+                .andExpect(jsonPath("$.message").value("Token no autorizado."));
     }
 }

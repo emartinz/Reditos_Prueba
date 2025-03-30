@@ -3,13 +3,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiResponse } from '../../models/general/ApiResponse';
 import { User } from '../../models/entity/User';
+import { constants } from '../../config/constants';
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class UserDetailsService {
-    private readonly baseURl = 'http://localhost:8081/api/user';
+    private readonly baseUrl = constants.urlTask + '/api/user';
 
     constructor(private readonly http: HttpClient) {}
 
@@ -30,7 +31,7 @@ export class UserDetailsService {
         };
 
         return this.http.post<ApiResponse<User>>(
-            `${this.baseURl}/registerUser`,
+            `${this.baseUrl}/registerUser`,
             body,
             { headers }
         );

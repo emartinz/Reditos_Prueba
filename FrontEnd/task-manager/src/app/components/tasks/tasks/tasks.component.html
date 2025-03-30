@@ -12,7 +12,7 @@
 	</div>
 </nav>
 <div class="container">
-    <button (click)="preCreateTask()" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
+    <button (click)="preCreateTask()" id="btnNewTask" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal">
         Crear Nueva Tarea
     </button>
 
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Filtro de búsqueda -->
-    <form (submit)="searchTasks()" class="d-flex align-items-center gap-2 mb-3">
+    <form (submit)="searchTasks(0)" class="d-flex align-items-center gap-2 mb-3">
         <input type="text" [(ngModel)]="searchParams.title" name="title" class="form-control" placeholder="Buscar por título" />
         
         <select [(ngModel)]="searchParams.status" name="status" class="form-select">
@@ -87,7 +87,7 @@
                 {{ priority }}
             </option>
         </select>
-
+      
         <button type="submit" class="btn btn-primary">Buscar</button>
         <button type="button" class="btn btn-secondary" (click)="clearSearch()">Limpiar</button>
     </form>
@@ -122,19 +122,15 @@
     <!-- Paginación y selección de elementos por página -->
     <div class="d-flex justify-content-between align-items-center mt-3">
         <div>
-            <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0" class="btn btn-outline-primary me-2">
-                Anterior
-            </button>
-            <span>{{ currentPage }} de {{ totalPages }}</span>
-            <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="btn btn-outline-primary ms-2">
-                Siguiente
-            </button>
+            <button (click)="prevPage()" [disabled]="currentPage === 0" class="btn btn-outline-primary me-2">Anterior</button>
+            <span>{{ currentPage < 0 ? 0 : currentPage + 1 }} de {{ totalPages + 1 }}</span>
+            <button (click)="nextPage()" [disabled]="(currentPage < 0 ? 0 : currentPage + 1) >= totalPages + 1" class="btn btn-outline-primary ms-2">Siguiente</button>
         </div>
 
         <div>
             <label for="itemsPerPage" class="form-label me-2">Tareas por página:</label>
-            <select id="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="loadTasks()" class="form-select">
-                <option *ngFor="let number of [5, 10, 20, 50]" [value]="number" [selected]="number === itemsPerPage">
+            <select id="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="loadTasks(0)" class="form-select">
+                <option *ngFor="let number of [5, 10, 20, 50]" [value]="number">
                     {{ number }}
                 </option>
             </select>

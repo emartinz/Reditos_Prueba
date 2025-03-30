@@ -1,0 +1,79 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./recursos/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -u root -p$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      internal_network:
+        ipv4_address: 192.168.150.5
+
+  auth-service:
+    build: ./BackEnd/auth
+    container_name: auth-service
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: prtec_auth_db
+    networks:
+      internal_network:
+          ipv4_address: 192.168.150.6
+
+  task-service:
+    build: ./BackEnd/tasks
+    container_name: tasks-service
+    ports:
+      - "8081:8081"
+      - "5006:5006"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: prtec_task_db
+    networks:
+      internal_network:
+          ipv4_address: 192.168.150.7
+
+  task-manager:
+    build: 
+      context: ./FrontEnd/task-manager
+      args:
+        AUTH_URL: "http://localhost:8080"
+        TASK_URL: "http://localhost:8081"
+    container_name: task-manager
+    ports:
+      - "80:80"
+      - "4200:4200"
+    depends_on:
+      - auth-service
+      - task-service
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    driver: bridge
+    name: internal_network
+    ipam:
+      config:
+        - subnet: 192.168.150.0/24

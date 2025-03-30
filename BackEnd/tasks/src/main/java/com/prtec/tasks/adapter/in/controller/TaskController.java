@@ -282,35 +282,41 @@ public class TaskController {
     })
     @SecurityRequirement(name = "Authorization")
     @GetMapping("/filter")
-    public ResponseEntity<ApiResponseDTO<Page<Task>>> getTasksFilteredForUser(
+    public ResponseEntity<ApiResponseDTO<Page<Task>>> getTasksFiltered(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) String title,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-            
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponseDTO<>(ApiResponseDTO.Status.ERROR, "No autorizado", null));
-        }
-
         try {
-            // Obtener el token y el ID del usuario
-            String token = authHeader.replace(BEARER_PREFIX, "");
-            Long userId = jwtUtil.getUserIdFromToken(token);
-            
-            // Crear un objeto PageRequest con los parámetros de paginación
-            PageRequest pageRequest = PageRequest.of(page, size);
-
-            // Obtener las tareas filtradas con paginación
-            Page<Task> tasks = taskService.getTasksByFilters(userId, title, status, priority, pageRequest);
-
-            // Retornar las tareas filtradas con paginación
-            return ResponseEntity.ok(new ApiResponseDTO<>(ApiResponseDTO.Status.SUCCESS, "Lista de tareas filtradas", tasks));
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponseDTO<>(ApiResponseDTO.Status.ERROR, "Error interno del servidor", null));
+            if (AuthUtils.isAdminUser(authHeader, jwtUtil)) {   
+                // Crear un objeto PageRequest con los parámetros de paginación
+                PageRequest pageRequest = PageRequest.of(page, size);
+    
+                // Obtener las tareas filtradas con paginación al ser null el usuario no filtrara por el y traera todas las tareas
+                Page<Task> tasks = taskService.getTasksByFilters(null, title, status, priority, pageRequest);
+    
+                // Retornar las tareas filtradas con paginación
+                return ResponseEntity.ok(new ApiResponseDTO<>(ApiResponseDTO.Status.SUCCESS, "Lista de tareas filtradas", tasks));
+            } else {
+                // Obtener el token y el ID del usuario
+                String token = authHeader.replace(BEARER_PREFIX, "");
+                Long userId = jwtUtil.getUserIdFromToken(token);
+                
+                // Crear un objeto PageRequest con los parámetros de paginación
+                PageRequest pageRequest = PageRequest.of(page, size);
+    
+                // Obtener las tareas filtradas con paginación
+                Page<Task> tasks = taskService.getTasksByFilters(userId, title, status, priority, pageRequest);
+    
+                // Retornar las tareas filtradas con paginación
+                return ResponseEntity.ok(new ApiResponseDTO<>(ApiResponseDTO.Status.SUCCESS, "Lista de tareas filtradas", tasks));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiResponseDTO<>(ApiResponseDTO.Status.ERROR, e.getMessage(), null));
         }
+        
     }
 }
