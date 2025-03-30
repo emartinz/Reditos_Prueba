@@ -1,11 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskService } from '../../../services/task/task.service';
 import { Task, TaskPriority, TaskStatus } from '../../../models/entity/Task';
-<<<<<<< Updated upstream
-=======
 import { HttpClient } from '@angular/common/http';
-
->>>>>>> Stashed changes
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -36,18 +32,14 @@ export class TasksComponent implements OnInit {
     createdAt: new Date(), 
     updatedAt: new Date() 
   };
-<<<<<<< Updated upstream
-  
-=======
 
   searchParams = {
     title: '',
     status: '',
     priority: ''
   };
-
   defaultItemsPerPage = 5;
->>>>>>> Stashed changes
+
   username: string | null = '';
   number = 5;
   currentPage = 0;
@@ -55,7 +47,7 @@ export class TasksComponent implements OnInit {
   itemsPerPage = this.defaultItemsPerPage;
   isFiltered = false;
 
-  constructor(private readonly taskService: TaskService, private readonly router: Router) {}
+  constructor(private readonly taskService: TaskService, private readonly router: Router, private readonly http: HttpClient) {}
 
   ngOnInit(): void {
     this.checkToken();
@@ -157,6 +149,7 @@ export class TasksComponent implements OnInit {
       createdAt: new Date(), 
       updatedAt: new Date() 
     };
+    
   }
 
   nextPage(): void {
@@ -186,8 +179,6 @@ export class TasksComponent implements OnInit {
     }
   }
 
-<<<<<<< Updated upstream
-=======
   clearSearch() {
     this.searchParams = {
         title: '',
@@ -197,9 +188,7 @@ export class TasksComponent implements OnInit {
     this.itemsPerPage = this.defaultItemsPerPage;
     this.loadTasks(0);
     this.isFiltered=false
-}
-
->>>>>>> Stashed changes
+ }
   checkToken(): void {
     const token = localStorage.getItem('jwt'); // Obtener el token desde el localStorage
 
@@ -236,8 +225,6 @@ export class TasksComponent implements OnInit {
     // Redirige al login
     this.router.navigate(['/login']);
   }
-<<<<<<< Updated upstream
-=======
 
   searchTasks(page?: number): void {
     if (page !== undefined) {
@@ -260,5 +247,32 @@ export class TasksComponent implements OnInit {
       }
     });
   }
->>>>>>> Stashed changes
+
+  searchTasks() {
+    const queryParams = new URLSearchParams();
+  
+    if (this.searchParams.title) {
+      queryParams.append('title', this.searchParams.title);
+    }
+    if (this.searchParams.status) {
+      queryParams.append('status', this.searchParams.status);
+    }
+    if (this.searchParams.priority) {
+      queryParams.append('priority', this.searchParams.priority);
+    }
+  
+    queryParams.append('page', this.currentPage.toString());
+    queryParams.append('size', this.itemsPerPage.toString());
+    const token = localStorage.getItem('jwt');
+    
+    this.http.get(`http://localhost:8081/api/tasks/filter?${queryParams.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe((response: any) => {
+      if (response.status === 'SUCCESS' && response.data) {
+        this.tasks = response.data.content;
+        this.totalPages = response.data.totalPages;
+        this.currentPage = response.data.pageable.pageNumber;
+      }
+    });
+  }
 }
