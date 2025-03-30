@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS prtec_auth_db;
+CREATE DATABASE IF NOT EXISTS prtec_task_db;

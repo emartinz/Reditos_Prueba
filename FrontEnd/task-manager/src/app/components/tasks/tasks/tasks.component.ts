@@ -1,11 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { TaskService } from '../../../services/task/task.service';
 import { Task, TaskPriority, TaskStatus } from '../../../models/entity/Task';
-<<<<<<< Updated upstream
-=======
-import { HttpClient } from '@angular/common/http';
-
->>>>>>> Stashed changes
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -36,9 +31,6 @@ export class TasksComponent implements OnInit {
     createdAt: new Date(), 
     updatedAt: new Date() 
   };
-<<<<<<< Updated upstream
-  
-=======
 
   searchParams = {
     title: '',
@@ -47,7 +39,6 @@ export class TasksComponent implements OnInit {
   };
 
   defaultItemsPerPage = 5;
->>>>>>> Stashed changes
   username: string | null = '';
   number = 5;
   currentPage = 0;
@@ -186,8 +177,6 @@ export class TasksComponent implements OnInit {
     }
   }
 
-<<<<<<< Updated upstream
-=======
   clearSearch() {
     this.searchParams = {
         title: '',
@@ -199,7 +188,6 @@ export class TasksComponent implements OnInit {
     this.isFiltered=false
 }
 
->>>>>>> Stashed changes
   checkToken(): void {
     const token = localStorage.getItem('jwt'); // Obtener el token desde el localStorage
 
@@ -236,8 +224,6 @@ export class TasksComponent implements OnInit {
     // Redirige al login
     this.router.navigate(['/login']);
   }
-<<<<<<< Updated upstream
-=======
 
   searchTasks(page?: number): void {
     if (page !== undefined) {
@@ -260,5 +246,4 @@ export class TasksComponent implements OnInit {
       }
     });
   }
->>>>>>> Stashed changes
 }

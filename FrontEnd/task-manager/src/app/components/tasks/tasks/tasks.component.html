@@ -70,53 +70,6 @@
         </div>
     </div>
 
-<<<<<<< Updated upstream
-    <div class="task-list mt-4">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Título</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                    <th>Prioridad</th>
-                    <th>Fecha de vencimiento</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let task of tasks">
-                    <td>{{ task.title }}</td>
-                    <td>{{ task.description }}</td>
-                    <td>{{ task.status }}</td>
-                    <td>{{ task.priority }}</td>
-                    <td>{{ task.dueDate | date }}</td>
-                    <td>
-						<button (click)="updateTask(task)" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#taskModal">Editar</button>
-						<button (click)="task.id ? deleteTask(task.id) : null" class="btn btn-danger">Eliminar</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="pagination mt-3">
-        <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0" class="btn btn-outline-primary me-2">
-            Anterior
-        </button>
-        <span>{{ currentPage }} de {{ totalPages }}</span>
-        <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="btn btn-outline-primary ms-2">
-            Siguiente
-        </button>
-    </div>
-
-    <div class="items-per-page mt-3">
-        <label for="itemsPerPage" class="form-label">Tareas por página:</label>
-        <select id="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="loadTasks()" class="form-select">
-            <option *ngFor="let number of [5, 10, 20, 50]" [value]="number">
-                {{ number }}
-            </option>
-        </select>
-=======
     <!-- Filtro de búsqueda -->
     <form (submit)="searchTasks(0)" class="d-flex align-items-center gap-2 mb-3">
         <input type="text" [(ngModel)]="searchParams.title" name="title" class="form-control" placeholder="Buscar por título" />
@@ -182,6 +135,5 @@
                 </option>
             </select>
         </div>
->>>>>>> Stashed changes
     </div>
 </div>
