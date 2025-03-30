@@ -1,6 +1,9 @@
+server:
+    port: 8081
+    address: 0.0.0.0
 spring:
     application:
-        name: auth
+        name: tasks
     output:
         ansi:
             enabled: always
@@ -18,9 +21,7 @@ spring:
         show-sql: false
     security:
         user:
-            enabled: false
-server:
-    port: 8081
+            password:
 logging:
     level:
         root: INFO

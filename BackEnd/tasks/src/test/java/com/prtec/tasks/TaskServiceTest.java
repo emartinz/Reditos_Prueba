@@ -158,6 +158,7 @@ class TaskServiceTest {
     void testGetTasksByFilters() {
         // Arrange
         PageRequest pageRequest = PageRequest.of(0, 10);
+        @SuppressWarnings("unchecked")
         Page<Task> tasksPage = mock(Page.class);
         when(taskRepository.findByUserAndFilters(anyLong(), anyString(), any(), any(), eq(pageRequest)))
                 .thenReturn(tasksPage);
@@ -175,6 +176,7 @@ class TaskServiceTest {
     void testGetAllTasks() {
         // Arrange
         PageRequest pageRequest = PageRequest.of(0, 10);
+        @SuppressWarnings("unchecked")
         Page<Task> tasksPage = mock(Page.class);
         when(taskRepository.findAll(pageRequest)).thenReturn(tasksPage);
 

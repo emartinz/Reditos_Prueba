@@ -24,7 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-
+@SuppressWarnings("null")
 class AuthControllerTest {
 
     @InjectMocks
@@ -59,6 +59,7 @@ class AuthControllerTest {
             ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsUser(user);
 
             assertNotNull(response);
+            assertNotNull(response.getBody());
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertEquals("SUCCESS", response.getBody().getStatus().toString());
             assertEquals("testuser", ((User) response.getBody().getData()).getUsername());
@@ -77,6 +78,7 @@ class AuthControllerTest {
             ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsUser(user);
 
             assertNotNull(response);
+            assertNotNull(response.getBody());
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
             assertEquals("ERROR", response.getBody().getStatus().toString());
             assertEquals("Error al registrar el usuario", response.getBody().getMessage());
@@ -99,6 +101,7 @@ class AuthControllerTest {
             ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsAdmin(authHeader, user);
 
             assertNotNull(response);
+            assertNotNull(response.getBody());
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             assertEquals("SUCCESS", response.getBody().getStatus().toString());
             assertEquals("testadminuser", ((User) response.getBody().getData()).getUsername());
@@ -121,6 +124,7 @@ class AuthControllerTest {
             ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsAdmin(authHeader, user);
 
             assertNotNull(response);
+            assertNotNull(response.getBody());
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
             assertEquals("ERROR", response.getBody().getStatus().toString());
             assertEquals("Error al registrar el usuario", response.getBody().getMessage());
@@ -139,6 +143,7 @@ class AuthControllerTest {
         ResponseEntity<ApiResponseDTO<String>> response = authController.login(authRequest);
 
         assertNotNull(response);
+        assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("SUCCESS", response.getBody().getStatus().toString());
         assertEquals("mockToken", response.getBody().getData());
@@ -153,6 +158,7 @@ class AuthControllerTest {
         ResponseEntity<ApiResponseDTO<String>> response = authController.login(authRequest);
 
         assertNotNull(response);
+        assertNotNull(response.getBody());
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertEquals("ERROR", response.getBody().getStatus().toString());
         assertEquals("Credenciales incorrectas", response.getBody().getMessage());
