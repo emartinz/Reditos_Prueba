@@ -25,8 +25,33 @@ spring:
 logging:
     level:
         root: INFO
+        "[com.prtec]": DEBUG
+        "[org.hibernate.engine.transaction.jta.platform.internal.JtaPlatformInitiator]": ERROR
+        '[org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer"]': ERROR
 custom:
     database:
         name: ${DB_NAME}
-jwt:
-    secret: ${JWT_SECRET}
+    endpoints:
+        auth: ${AUTH_ENDPOINT:http://localhost:8080}
+    security:
+        cors:
+            allowed-origins: >
+                http://localhost:4200,
+                http://localhost,
+                http://host.docker.internal
+            allowed-methods: >
+                GET,
+                POST,
+                PUT,
+                DELETE,
+                OPTIONS
+            allowed-headers: >
+                Authorization,
+                Content-Type,
+                Accept
+        public-paths: >
+            /v2/api-docs/**,
+            /v3/api-docs/**,
+            /swagger-resources/**,
+            /swagger-ui/**,
+            /webjars/**

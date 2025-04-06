@@ -20,8 +20,8 @@ Este proyecto fue desarrollado como parte de una prueba técnica. Este proyecto 
     - [Requisitos](#requisitos)
   - [Configuración](#configuración)
   - [Instalación y Ejecución](#instalación-y-ejecución)
-    - [**Instalación:**](#instalación-1)
-    - [**Ejecución:**](#ejecución)
+    - [Instalación:](#instalación-1)
+    - [Ejecución:](#ejecución)
   - [Endpoints principales](#endpoints-principales)
     - [Registro y Autenticación](#registro-y-autenticación)
     - [Gestión de Tareas](#gestión-de-tareas)
@@ -30,21 +30,22 @@ Este proyecto fue desarrollado como parte de una prueba técnica. Este proyecto 
 
 ## Tecnologias Utilizadas ##
 ### Backend (Microservicios) ###
-* Spring Boot - Framework principal para el desarrollo de los microservicios.
-* Spring Security - Implementación de seguridad y autenticación basada en JWT.
-* Spring Data JPA - Interacción con bases de datos.
-* MySQL - Base de datos relacional utilizada para persistencia.
-* Hibernate - ORM para el manejo de entidades.
-* Swagger OpenAPI - Documentación y prueba de API.
-* Lombok - Reducción de código boilerplate.
-* JUnit & Mockito - Pruebas unitarias.
+* **Spring Boot:** Framework principal para el desarrollo de los microservicios.
+* **Spring Security:** Implementación de seguridad
+* **JSON Web Tokens (JWT):** Estandar de seguridad basado en Tokens.
+* **Spring Data JPA:** Interacción con bases de datos.
+* **MySQL:** Base de datos relacional utilizada para persistencia.
+* **Hibernate:** ORM para el manejo de entidades.
+* **Swagger OpenAPI:** Documentación y prueba de API.
+* **Lombok:** Reducción de código boilerplate.
+* **JUnit & Mockito:** Pruebas unitarias.
 
 ### FrontEnd ###
-* Angular - Framework para el desarrollo de la aplicación cliente.
-* Bootstrap - Diseño moderno e interactivo.
-* RxJS - Manejo de programación reactiva.
-* JWT Helper - Manejo de tokens JWT en el cliente.
-* HttpClient - Comunicación con los microservicios.
+* **Angular:** Framework para el desarrollo de la aplicación cliente.
+* **Bootstrap:** Diseño moderno e interactivo.
+* **RxJS:** Manejo de programación reactiva.
+* **JWT Helper:** Manejo de tokens JWT en el cliente.
+* **HttpClient:** Comunicación con los microservicios.
 
 ## Características principales 
 
@@ -90,19 +91,20 @@ Este comando generará un informe en el proyecto en la ruta: `target/site/jacoco
 
 Antes de ejecutar la aplicación, si lo deseas, puedes modificar el archivo `.env` en la raíz de los proyectos Java, el cual debe contener la siguiente configuración:
 
-```env
+```bash
 DB_NAME=${Nombre de la Base de Datos}
 DB_HOST=${Servidor}
 DB_PORT=${Puerto}
 DB_USER=${Usuario}
 DB_PASS=${Contraseña}
 DB_EXTRA_PARAMS=?serverTimezone=UTC
+AUTH_ENDPOINT=http://host.docker.internal:8080 #Comentar linea si se trabaja localmente
 JWT_SECRET=${Secret key de por lo menos 32 caracteres}$
 ```
 
 ## Instalación y Ejecución
 
-### **Instalación:**
+### Instalación:
 1. Clonar el repositorio:
    ```bash
    git clone https://github.com/emartinz/Reditos_Prueba.git
@@ -115,9 +117,15 @@ JWT_SECRET=${Secret key de por lo menos 32 caracteres}$
    ```bash
    docker compose --env-file .env -f docker.compose.yml up --build -d
    ```
-### **Ejecución:**
-Una vez finalice el despliegue podrá ingresar a la interfaz web del Gestor de Tareas
-http://localhost:4200
+### Ejecución:
+* Una vez finalice el despliegue podrá ingresar a la interfaz web del Gestor de Tareas http://localhost:4200
+* Por defecto los servicios generan data de pruebas, podra acceder a ellos con las siguientes credenciales:
+  * **Usuario normal:**
+    * **username**: user
+    * **pass**: T3stP4$$
+   * **Usuario administrador:**
+      * **username**: admin
+      * **pass**: T3stP4$$
 
 ## Endpoints principales
 
@@ -258,27 +266,27 @@ Sirve para crear/registrar usuarios, por defecto la app genera datos de pruebas 
 
    **Response:**
    ```json
-      {
-         "status": "SUCCESS",
-         "message": "Tarea creada",
-         "data": {
-            "id": 13,
-            "title": "Nueva tarea",
-            "description": "Descripción de la tarea",
-            "status": "EN_PROGRESO",
-            "priority": "ALTA",
-            "dueDate": null,
-            "userDetails": {
-                  "username": "user",
-                  "email": "user@example.com",
-                  "firstName": "Andres",
-                  "lastName": "Zapata"
-            },
-            "createdAt": "2025-03-30T07:49:13.236712",
-            "updatedAt": "2025-03-30T07:49:13.236741"
-         }
+   {
+      "status": "SUCCESS",
+      "message": "Tarea creada",
+      "data": {
+         "id": 13,
+         "title": "Nueva tarea",
+         "description": "Descripción de la tarea",
+         "status": "EN_PROGRESO",
+         "priority": "ALTA",
+         "dueDate": null,
+         "userDetails": {
+               "username": "user",
+               "email": "user@example.com",
+               "firstName": "Andres",
+               "lastName": "Zapata"
+         },
+         "createdAt": "2025-03-30T07:49:13.236712",
+         "updatedAt": "2025-03-30T07:49:13.236741"
       }
-      ```
+   }
+   ```
 - **PUT** `/api/tasks/{id}` → Actualizar una tarea
   **Request:**
   - **Headers:** 

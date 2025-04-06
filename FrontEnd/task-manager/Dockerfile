@@ -18,7 +18,7 @@ ARG AUTH_URL
 ARG TASK_URL
 
 RUN sed -i "s|urlAuth:\s*[^,]*|urlAuth: '${AUTH_URL}'|" src/app/config/constants.ts && \
-    sed -i "s|urlTask:\s*[^,]*|urlTask: '${TASK_URL}'|" src/app/config/constants.ts
+	sed -i "s|urlTask:\s*[^,]*|urlTask: '${TASK_URL}'|" src/app/config/constants.ts
 
 # Construir la aplicación en modo producción
 RUN npm run build --prod

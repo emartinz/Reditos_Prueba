@@ -3,10 +3,10 @@ package com.prtec.auth;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.prtec.auth.adapter.in.controller.UserController;
 import com.prtec.auth.application.service.UserService;
 import com.prtec.auth.domain.model.dto.ApiResponseDTO;
 import com.prtec.auth.domain.model.entities.User;
-import com.prtec.auth.adapter.in.controller.UserController;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

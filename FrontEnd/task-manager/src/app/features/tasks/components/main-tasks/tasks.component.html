@@ -1,0 +1,188 @@
+<div class="container-fluid px-md-5">
+	<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="taskModalLabel">
+						{{ task.id ? 'Editar Tarea' : 'Crear Nueva Tarea' }}
+					</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form (ngSubmit)="onSubmit()" #taskForm="ngForm">
+						<div class="mb-3">
+							<label for="title" class="form-label">Título</label>
+							<input type="text" id="title" [(ngModel)]="task.title" name="title" class="form-control"
+								required />
+						</div>
+
+						<div class="mb-3">
+							<label for="description" class="form-label">Descripción</label>
+							<textarea id="description" [(ngModel)]="task.description" name="description" class="form-control"
+								required></textarea>
+						</div>
+
+						<div class="mb-3">
+							<label for="status" class="form-label">Estado</label>
+							<select id="status" [(ngModel)]="task.status" name="status" class="form-control" required>
+								<option *ngFor="let status of taskStatuses" [value]="status">
+									{{ status }}
+								</option>
+							</select>
+						</div>
+
+						<div class="mb-3">
+							<label for="priority" class="form-label">Prioridad</label>
+							<select id="priority" [(ngModel)]="task.priority" name="priority" class="form-control" required>
+								<option *ngFor="let priority of taskPriorities" [value]="priority">
+									{{ priority }}
+								</option>
+							</select>
+						</div>
+
+						<div class="mb-3">
+							<label for="dueDate" class="form-label">Fecha de vencimiento</label>
+							<input type="date" id="dueDate" [(ngModel)]="task.dueDate" name="dueDate" class="form-control"
+								required />
+						</div>
+
+						<button type="submit" class="btn btn-primary">
+							{{ task.id ? 'Actualizar Tarea' : 'Crear Tarea' }}
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="container-fluid bg-dark  rounded">
+
+		<!-- Filtro de búsqueda -->
+		<div class="">
+			<form (submit)="searchTasks(0)"
+				class="d-flex justify-content-center align-items-center flex-column flex-sm-row gap-2 w-100 py-3">
+
+				<!-- Botón para crear nueva tarea -->
+				<div class="col col-12 col-sm-1">
+					<button type="button" (click)="preCreateTask()" id="btnNewTask" class="btn btn-primary w-100"
+						data-bs-toggle="modal" data-bs-target="#taskModal">
+						<i class="fas fa-plus"></i>
+					</button>
+				</div>
+				<!-- Campo de texto para buscar por título -->
+				<input type="text" [(ngModel)]="searchParams.title" name="title" class="form-control w-100"
+					placeholder="Buscar por título" />
+
+				<!-- Selector de estado -->
+				<select [(ngModel)]="searchParams.status" name="status" class="form-select w-100">
+					<option value="">Todos los estados</option>
+					<option *ngFor="let status of taskStatuses" [value]="status">{{ status }}</option>
+				</select>
+
+				<!-- Selector de prioridad -->
+				<select [(ngModel)]="searchParams.priority" name="priority" class="form-select w-100">
+					<option value="">Todas las prioridades</option>
+					<option *ngFor="let priority of taskPriorities" [value]="priority">{{ priority }}</option>
+				</select>
+
+				<div class="col col-12 col-sm-1">
+					<!-- Botón para buscar -->
+					<button type="submit" class="btn btn-primary w-100">
+						<i class="fa-solid fa-magnifying-glass"></i>
+					</button>
+				</div>
+				<div class="col col-12 col-sm-1">
+					<!-- Botón para limpiar filtros -->
+					<button type="button" class="btn btn-secondary w-100" (click)="clearSearch()">
+						<i class="fa-solid fa-broom"></i>
+					</button>
+				</div>
+			</form>
+
+			<!-- Lista de tareas -->
+			<div class="table-responsive">
+				<table class="table table-striped table-hover table-dark">
+					<thead class="thead-dark">
+						<tr>
+							<th>Título</th>
+							<th>Descripción</th>
+							<th>Estado</th>
+							<th>Prioridad</th>
+							<th>Fecha de vencimiento</th>
+							<th *ngIf="isAdmin">Dueño</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let task of tasks">
+							<td>{{ task.title }}</td>
+							<td>{{ task.description }}</td>
+							<td>{{ task.status }}</td>
+							<td>{{ task.priority }}</td>
+							<td>{{ task.dueDate | date }}</td>
+							<td *ngIf="isAdmin">
+								{{ task.userDetails.firstName }} {{ task.userDetails.lastName }} ({{ task.userDetails.username
+								}})
+							</td>
+							<td>
+								<div class="d-flex justify-content-start align-items-center gap-2">
+									<button (click)="updateTask(task)" class="btn btn-warning btn-sm" data-bs-toggle="modal"
+										data-bs-target="#taskModal">
+										<i class="fas fa-edit"></i>
+									</button>
+									<button (click)="task.id ? deleteTask(task.id) : null" class="btn btn-danger btn-sm">
+										<i class="fas fa-trash"></i>
+									</button>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="d-flex justify-content-between align-items-center flex-wrap mt-2">
+				<!-- Paginación -->
+				<div class="d-flex">
+
+					<!-- Contenedor para los números de página -->
+					<ul class="pagination">
+						<li class="page-item" [class.disabled]="currentPage === 0">
+							<button class="page-link" (click)="changePage(0)">
+								<i class="fa-solid fa-angles-left"></i>
+							</button>
+						</li>
+						<li class="page-item">
+							<button (click)="prevPage()" [class.disabled]="firstPage" class="page-link">
+								<i class="fa-solid fa-angle-left"></i>
+							</button>
+						</li>
+						<li *ngFor="let page of getPageNumbers()" class="page-item" [class.active]="currentPage === page">
+							<button class="page-link" (click)="changePage(page)">
+								{{ page + 1 }}
+							</button>
+						</li>
+						<li class="page-item">
+							<button (click)="nextPage()" [class.disabled]="lastPage" class="page-link">
+								<i class="fa-solid fa-angle-right"></i>
+							</button>
+						</li>
+						<li class="page-item" [class.disabled]="currentPage === totalPages">
+							<button class="page-link" (click)="changePage(totalPages)">
+								<i class="fa-solid fa-angles-right"></i>
+							</button>
+						</li>
+					</ul>
+				</div>
+
+				<!-- Selección de tareas por página -->
+				<div class="d-flex align-items-center pb-3">
+					<label for="itemsPerPage" class="form-label text-white me-2">Items:</label>
+					<select id="itemsPerPage" [(ngModel)]="itemsPerPage" (change)="loadTasks(0)" class="form-select w-50">
+						<option *ngFor="let number of [3, 5, 10, 20, 50]" [value]="number">
+							{{ number }}
+						</option>
+					</select>
+				</div>
+			</div>
+		</div>
+	</div>

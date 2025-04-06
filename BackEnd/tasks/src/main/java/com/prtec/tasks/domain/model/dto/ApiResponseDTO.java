@@ -8,24 +8,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApiResponseDTO<T> {
-    private Status status;
-    private String message;
-    private T data;
+	private Status status;
+	private String message;
+	private T data;
 
-    public static final String OK = "OK";
+	public static final String OK = "OK";
 
-    public enum Status {
-        SUCCESS("success"),
-        ERROR("error");
+	public enum Status {
+		SUCCESS("success"),
+		ERROR("error");
 
-        private final String value;
+		private final String value;
 
-        Status(String value) {
-            this.value = value;
-        }
+		Status(String value) {
+			this.value = value;
+		}
 
-        public String getValue() {
-            return value;
-        }
-    }
+		public String getValue() {
+			return value;
+		}
+	}
 }
