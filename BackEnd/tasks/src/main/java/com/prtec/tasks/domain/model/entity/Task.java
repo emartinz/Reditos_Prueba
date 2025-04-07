@@ -25,58 +25,59 @@ import lombok.NoArgsConstructor;
 @Table(name = "tasks")
 public class Task {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Column(nullable = false, length = 255, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_general_ci")
-    private String title;
+	@Column(nullable = false, length = 255, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_general_ci")
+	private String title;
 
-    @Column(length = 500)
-    private String description;
+	@Column(length = 500)
+	private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TaskStatus status = TaskStatus.PENDIENTE;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private TaskStatus status = TaskStatus.PENDIENTE;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TaskPriority priority = TaskPriority.MEDIA;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private TaskPriority priority = TaskPriority.MEDIA;
 
-    @Column
-    private LocalDate dueDate;
+	@Column
+	private LocalDate dueDate;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserDetails userDetails;
+	@ManyToOne
+	@JoinColumn(name = "user_id", nullable = false)
+	private UserDetails userDetails;
 
-    @Column(nullable = false, updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+	@Column(nullable = false, updatable = false)
+	@CreationTimestamp
+	private LocalDateTime createdAt;
 
-    @Column
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+	@Column
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
-    public enum TaskStatus {
-        PENDIENTE,
-        EN_PROGRESO,
-        COMPLETADA
-    }
+	public enum TaskStatus {
+		PENDIENTE,
+		EN_PROGRESO,
+		COMPLETADA
+	}
 
-    public enum TaskPriority {
-        ALTA,
-        MEDIA,
-        BAJA
-    }
+	public enum TaskPriority {
+		ALTA,
+		MEDIA,
+		BAJA
+	}
 
-    public Task(String title, String description, TaskStatus status, TaskPriority priority, LocalDate dueDate, UserDetails userDetails) {
-        this.title = title;
-        this.description = description;
-        this.status = status;
-        this.priority = priority;
-        this.dueDate = dueDate;
-        this.userDetails = userDetails;
-    }
+	public Task(String title, String description, TaskStatus status, TaskPriority priority, LocalDate dueDate,
+			UserDetails userDetails) {
+		this.title = title;
+		this.description = description;
+		this.status = status;
+		this.priority = priority;
+		this.dueDate = dueDate;
+		this.userDetails = userDetails;
+	}
 
 }

@@ -18,30 +18,30 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name="user_details")
+@Table(name = "user_details")
 public class UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@JsonIgnore
+	private Long id;
 
-    @Column(nullable = false, unique = true)
-    @JsonIgnore
-    private Long userId; // Este Id lo toma del servicio auth al autenticarse exitosamente
+	@Column(nullable = false, unique = true)
+	@JsonIgnore
+	private Long userId; // Este Id lo toma del servicio auth al autenticarse exitosamente
 
-    @Column(nullable = false, unique = true)
-    private String username;
+	@Column(nullable = false, unique = true)
+	private String username;
 
-    @Column
-    private String email;
+	@Column
+	private String email;
 
-    @Column(nullable = true, length = 100, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_general_ci")
-    private String firstName;
+	@Column(nullable = true, length = 100, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_general_ci")
+	private String firstName;
 
-    @Column(nullable = true, length = 100, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_general_ci")
-    private String lastName;
+	@Column(nullable = true, length = 100, columnDefinition = "VARCHAR(255) COLLATE utf8mb4_general_ci")
+	private String lastName;
 
-    @OneToMany(mappedBy = "userDetails", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Task> tasks;
+	@OneToMany(mappedBy = "userDetails", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonIgnore
+	private List<Task> tasks;
 }

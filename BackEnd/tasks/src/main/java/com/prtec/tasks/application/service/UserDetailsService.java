@@ -13,31 +13,37 @@ import com.prtec.tasks.domain.model.entity.UserDetails;
 @RequiredArgsConstructor
 public class UserDetailsService {
 
-    private final IUserDetailsRepository repository;
+	private final IUserDetailsRepository repository;
 
-    public UserDetails saveOrUpdateUserDetails(Long userId, String username, String email, String firstName, String lastName) {
-        UserDetails userDetails = repository.findById(userId).orElse(new UserDetails());
-        userDetails.setUserId(userId);
-        userDetails.setUsername(username);
-        userDetails.setEmail(email);
-        userDetails.setFirstName(firstName);
-        userDetails.setLastName(lastName);
+	public UserDetails saveOrUpdateUserDetails(Long userId, String username, String email, String firstName,
+			String lastName) {
+		UserDetails userDetails = repository.findById(userId).orElse(new UserDetails());
+		userDetails.setUserId(userId);
+		userDetails.setUsername(username);
+		userDetails.setEmail(email);
+		userDetails.setFirstName(firstName);
+		userDetails.setLastName(lastName);
 
-        return repository.save(userDetails);
-    }
+		return repository.save(userDetails);
+	}
 
-    public Optional<UserDetails> findByUsername(String username) {
-        return repository.findByUsername(username);
-    }
+	public Optional<UserDetails> findByUsername(String username) {
+		return repository.findByUsername(username);
+	}
 
-    public UserDetails findOrCreateUser(Long userId, String username) {
-        return repository.findByUsername(username)
-            .orElseGet(() -> {
-                // Crear nuevo UserDetails asociado a id del auth
-                UserDetails newUser = new UserDetails();
-                newUser.setUserId(userId);
-                newUser.setUsername(username);
-                return repository.save(newUser);
-            });
-    }
+	public UserDetails findOrCreateUser(Long userId, String username) {
+		return repository.findByUsername(username)
+				.orElseGet(() -> {
+					// Crear nuevo UserDetails asociado a id del auth
+					UserDetails newUser = new UserDetails();
+					newUser.setUserId(userId);
+					newUser.setUsername(username);
+					return repository.save(newUser);
+				});
+	}
+
+	public UserDetails getUserDetailsById(Long id) {
+		return repository.findById(id).orElse(null);
+	}
+
 }

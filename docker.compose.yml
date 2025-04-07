@@ -32,6 +32,7 @@ services:
       DB_USER: root
       DB_PASS: root
       DB_NAME: prtec_auth_db
+      DB_EXTRA_PARAMS: "?serverTimezone=UTC"
     networks:
       internal_network:
           ipv4_address: 192.168.150.6
@@ -50,6 +51,8 @@ services:
       DB_USER: root
       DB_PASS: root
       DB_NAME: prtec_task_db
+      DB_EXTRA_PARAMS: "?serverTimezone=UTC"
+      AUTH_ENDPOINT: http://host.docker.internal:8080
     networks:
       internal_network:
           ipv4_address: 192.168.150.7
