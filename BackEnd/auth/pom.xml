@@ -121,7 +121,7 @@
 				<configuration>
 					<excludes>
 						<exclude>com/prtec/*/*.class</exclude>
-						<exclude>com/prtec/*/config/**</exclude>
+						<exclude>com/prtec/**/config/**</exclude>
 						<exclude>com/prtec/*/domain/dto/**</exclude>
 						<exclude>com/prtec/*/domain/model/**</exclude>
 						<exclude>com/prtec/*/application/exceptions/**</exclude>

@@ -9,5 +9,5 @@ import com.prtec.tasks.domain.model.entity.UserDetails;
 
 @Repository
 public interface IUserDetailsRepository extends JpaRepository<UserDetails, Long> {
-    Optional<UserDetails> findByUsername(String username);
+	Optional<UserDetails> findByUsername(String username);
 }

@@ -10,11 +10,13 @@ import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import com.prtec.auth.application.config.JwtProperties;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -23,30 +25,43 @@ import io.jsonwebtoken.security.Keys;
 
 /**
  * Utilidad para trabajar con JWT
- * @author Edgar Andres
- * @version 1.0
+ * @author Edgar Martinez
+ * @version 1.1
  */
 @Component
 public class JwtUtil {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
+    private static final String TOKEN_TYPE = "tokenType";
     
     private final SecretKey key;
     private final long expirationTime;
+    private final long refreshTokenExpirationTime;
     
+    /**
+     * Constructor que inicializa la clave y el tiempo de expiración.
+     * @param jwtProperties Propiedades de JWT inyectadas desde la configuración.
+     */
+    @Autowired
+    public JwtUtil(JwtProperties jwtProperties) {
+        this.key = getSecretKey(jwtProperties.getSecret());
+        this.expirationTime = jwtProperties.getExpirationTimeMinutes() * 60 * 1000; // Convertir a milisegundos
+        this.refreshTokenExpirationTime = jwtProperties.getExpirationTimeMinutes() * 60 * 1000 * 24 * 7; // 7 días
+        logger.info("JWT Service: Inicialización con {} minutos para expiración de tokens.", jwtProperties.getExpirationTimeMinutes());
+    }
+
     /**
      * Constructor que inicializa la clave y el tiempo de expiración.
      * 
      * @param jwtSecret El secreto JWT inyectado desde las propiedades.
      * @param expirationTimeMinutes Tiempo de expiración en minutos, se define en application.yaml.
      */
-    public JwtUtil(
-        @Value("${jwt.secret}") String jwtSecret,
-        @Value("${jwt.expiration-time-minutes}") long expirationTimeMinutes
-    ) {
+    public JwtUtil(String jwtSecret, long expirationTimeMinutes) {
         this.key = getSecretKey(jwtSecret);
         this.expirationTime = expirationTimeMinutes * 60 * 1000; // Convertir a milisegundos
+        this.refreshTokenExpirationTime = expirationTimeMinutes * 60 * 1000 * 24 * 7; // 7 días
         logger.info("JWT Service: Inicialización con {} minutos para expiracion de tokens.", expirationTimeMinutes);
     }
+
 
     /**
      * Metodo para convertir secreto de formato String a formato {@link javax.crypto.SecretKey}.
@@ -62,7 +77,7 @@ public class JwtUtil {
     }
 
     /**
-     * Metodo para crear token, es invocado por {@link #generateToken(UserDetails)}
+     * Metodo para crear token de acceso, es invocado por {@link #generateToken(UserDetails)}
      * 
      * @param claims
      * @param subject
@@ -79,16 +94,22 @@ public class JwtUtil {
     }
 
     /**
-     * Metodo para validar si un token expiró
+     * Metodo para crear refresh token
      * 
-     * @param token
-     * @return verdadero o false dependiendo si el token está expirado
+     * @param claims
+     * @param subject
+     * @return Refresh Token JWT
      */
-    public boolean isTokenExpired(String token) {
-        return getExpirationFromToken(token).before(new Date());
+    public String createRefreshToken(Map<String, Object> claims, String subject) {
+        return Jwts.builder()
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpirationTime))
+                .signWith(key, Jwts.SIG.HS256)
+                .claim(TOKEN_TYPE, "refresh")
+                .compact();
     }
-
-    // Extraer Informacion
     
     /**
      * Metodo para extraer payload
@@ -110,11 +131,7 @@ public class JwtUtil {
      * @return fecha de expiracion del token
      */
     public Date getExpirationFromToken(String token) {
-        try {
-            return getPayloadFromToken(token).getExpiration();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Token inválido o expirado.", e);
-        }
+        return getPayloadFromToken(token).getExpiration();
     } 
 
     /**
@@ -123,9 +140,7 @@ public class JwtUtil {
      * @return
      */
     public Long getUserIdFromToken(String token) {
-        return Long.parseLong(
-            getPayloadFromToken(token).get("userId").toString()
-        );
+        return Long.parseLong(getPayloadFromToken(token).get("userId").toString());
     }
 
     /**
@@ -135,12 +150,7 @@ public class JwtUtil {
      * @return nombre del usuario
      */
     public String getUsernameFromToken(String token) {
-        try {
-            return getPayloadFromToken(token).getSubject();
-        } catch (Exception e) {
-            logger.error("Error desconocido al procesar el token: {}", e.getMessage());
-            throw new IllegalArgumentException("Error al procesar el token.", null);
-        }
+        return getPayloadFromToken(token).getSubject();
     }   
 
     /**
@@ -151,12 +161,9 @@ public class JwtUtil {
     public List<GrantedAuthority> getRolesFromToken(String token) {
         List<?> roles = getPayloadFromToken(token).get("roles", List.class);
     
-        if (roles == null) {
-            return Collections.emptyList();
-        }
-        
-        return roles.stream()
-                    .filter(String.class::isInstance) // Filtra solo Strings
+        return roles == null ? Collections.emptyList() :
+                roles.stream()
+                    .filter(String.class::isInstance)
                     .map(role -> new SimpleGrantedAuthority((String) role))
                     .collect(Collectors.toList());
     }
@@ -169,18 +176,42 @@ public class JwtUtil {
      */ 
     public boolean isTokenValid(String token, String currentUsername) {
         try {
-            Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token);
+            Claims payload = getPayloadFromToken(token); // Obtener el payload solo una vez
+            boolean isExpired = payload.getExpiration().before(new Date());
+
+            if (isExpired) {
+                logger.info("Token expirado.");
+                return false;
+            }
             
-            final String tokenUsername = getUsernameFromToken(token);
-            boolean isValid = tokenUsername.equals(currentUsername) && !isTokenExpired(token);
+            final String tokenUsername = payload.getSubject();
+            boolean isValid = tokenUsername.equals(currentUsername);
             logger.info("Validación de token para usuario {}: {}", tokenUsername, isValid ? "Valid" : "Invalid");
             return isValid;
         } catch (Exception e) {
             logger.error("No se pudo validar el token: {}", e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Metodo para validar si un token expiró
+     * 
+     * @param token
+     * @return verdadero o false dependiendo si el token está expirado
+     */
+    public boolean isTokenExpired(String token) {
+        return getExpirationFromToken(token).before(new Date());
+    }
+
+    /**
+     * Método para verificar si un token es un refresh token
+     * 
+     * @param token
+     * @return verdadero si es un refresh token
+     */
+    public boolean isRefreshToken(String token) {
+        Claims claims = getPayloadFromToken(token);
+        return claims.get(TOKEN_TYPE) != null && claims.get(TOKEN_TYPE).equals("refresh");
     }
 }

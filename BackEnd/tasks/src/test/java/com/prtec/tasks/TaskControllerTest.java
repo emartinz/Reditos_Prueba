@@ -11,8 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
@@ -23,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -39,345 +39,339 @@ import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(properties = {
+		"custom.security.public-paths=/v2/api-docs/**,/v3/api-docs/**,/swagger-resources/**,/swagger-ui/**,/webjars/**" })
 class TaskControllerTest {
-    private static final String STR_VALID_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJBRE1JTiIsIlVTRVIiXSwidXNlcklkIjoxLCJzdWIiOiJhZG1pbiIsImlhdCI6MTc0MzE3NTYzMSwiZXhwIjoxNzc0NzExNjMxfQ.pCsYxqdqrL8AUu5_4ryahzTpr1jZXRRiRmP8IPsRPzI";
-    private static final String STR_INVALID_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsImlhdCI6MTc0MzE2Mzk4OCwiZXhwIjoxNzc0Njk5OTg4fQ.pSSy9NZwFZ_EcsE26E5ziD4z-rp3qEAQ92BI11qlbOI";
-    @InjectMocks
-    private TaskController taskController;
+	private static final String STR_VALID_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJBRE1JTiIsIlVTRVIiXSwidXNlcklkIjoxLCJzdWIiOiJhZG1pbiIsImlhdCI6MTc0MzE3NTYzMSwiZXhwIjoxNzc0NzExNjMxfQ.pCsYxqdqrL8AUu5_4ryahzTpr1jZXRRiRmP8IPsRPzI";
+	private static final String STR_INVALID_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0VXNlciIsImlhdCI6MTc0MzE2Mzk4OCwiZXhwIjoxNzc0Njk5OTg4fQ.pSSy9NZwFZ_EcsE26E5ziD4z-rp3qEAQ92BI11qlbOI";
 
-    @Mock
-    private TaskService taskService;
+	@InjectMocks
+	private TaskController taskController;
 
-    @Mock
-    private JwtUtil jwtUtil;
+	@Mock
+	private TaskService taskService;
 
-    @Mock
-    private UserDetailsService userDetailsService;
+	@Mock
+	private UserDetailsService userDetailsService;
 
-    private MockMvc mockMvc;
+	@Spy
+	private JwtUtil jwtUtil = new JwtUtil();
 
-    @BeforeEach
-    void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(taskController).build();
-    }
+	@Spy
+	private AuthUtils authUtils = new AuthUtils(jwtUtil);
 
-    @Test
-    void testCreateTask_Success() throws Exception {
-        Task task = new Task();
-        task.setTitle("New Task");
-        task.setDescription("Task Description");
+	private MockMvc mockMvc;
 
-        UserDetails userDetails = new UserDetails();
-        userDetails.setUsername("testuser");
-        task.setUserDetails(userDetails);
+	@BeforeEach
+	void setup() {
+		mockMvc = MockMvcBuilders.standaloneSetup(taskController).build();
+	}
 
-        when(taskService.createTask(any(Task.class))).thenReturn(task);
+	@Test
+	void testCreateTask_Success() throws Exception {
+		Task task = new Task();
+		task.setTitle("New Task");
+		task.setDescription("Task Description");
 
-        mockMvc.perform(post("/api/tasks/create")
-                .header("Authorization", STR_VALID_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"title\": \"New Task\", \"description\": \"Task Description\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("Tarea creada"))
-                .andExpect(jsonPath("$.data.title").value("New Task"));
-    }
+		UserDetails userDetails = new UserDetails();
+		userDetails.setId(3L);
+		userDetails.setUsername("testuser");
+		task.setUserDetails(userDetails);
 
-    @Test
-    void testGetAllTasksForUser_Success() throws Exception {
-        Task task = new Task();
-        task.setTitle("Task 1");
+		doReturn(userDetails.getId()).when(jwtUtil).getUserIdFromToken(anyString());
+		doReturn(userDetails.getUsername()).when(jwtUtil).getUsernameFromToken(anyString());
+		when(userDetailsService.findOrCreateUser(anyLong(), anyString())).thenReturn(userDetails);
+		when(taskService.createTask(any())).thenReturn(task);
 
-        when(jwtUtil.getRolesFromToken(anyString())).thenReturn(
-            List.of(new SimpleGrantedAuthority("ADMIN"), new SimpleGrantedAuthority("USER"))
-        );
-        when(jwtUtil.getUsernameFromToken(anyString())).thenReturn("user");
-        Pageable pageable = PageRequest.of(0, 10);
-        when(taskService.getTasksByUser(anyString(), any()))
-            .thenReturn(new PageImpl<>(new ArrayList<>(List.of(task)), pageable, 1));
+		mockMvc.perform(post("/api/tasks/create")
+				.header("Authorization", STR_VALID_TOKEN)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"title\": \"New Task\", \"description\": \"Task Description\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("SUCCESS"))
+				.andExpect(jsonPath("$.message").value("Tarea creada"))
+				.andExpect(jsonPath("$.data.title").value("New Task"));
+	}
 
-        mockMvc.perform(get("/api/tasks/getAll")
-                .header("Authorization", STR_VALID_TOKEN)
-                .param("page", "0")
-                .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("OK"))
-                .andExpect(jsonPath("$.data.content[0].title").value("Task 1"));
-    }
+	@Test
+	void testGetAllTasksForUser_Success() throws Exception {
+		Task task = new Task();
+		task.setTitle("Task 1");
 
-    @Test
-    void testCreateTask_Unauthorized() throws Exception {
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.getTokenFromAuthHeader(anyString()))
-                    .thenReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado"));
+		Pageable pageable = PageRequest.of(0, 10);
+		doReturn(true).when(authUtils).hasRole(anyString(), anyString());
+		doReturn("testuser").when(jwtUtil).getUsernameFromToken(anyString());
+		when(taskService.getTasksByUser(anyString(), any()))
+				.thenReturn(new PageImpl<>(new ArrayList<>(List.of(task)), pageable, 1));
 
-            mockMvc.perform(post("/api/tasks/create")
-                    .header("Authorization", STR_INVALID_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"title\": \"New Task\", \"description\": \"Task Description\"}"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status").value("ERROR"))
-                    .andExpect(jsonPath("$.message").value("No autorizado"));
-        }
-    }
+		mockMvc.perform(get("/api/tasks/getAll")
+				.header("Authorization", STR_VALID_TOKEN)
+				.param("page", "0")
+				.param("size", "10"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("SUCCESS"))
+				.andExpect(jsonPath("$.message").value("OK"))
+				.andExpect(jsonPath("$.data.content[0].title").value("Task 1"));
+	}
 
-    @Test
-    void testGetAllTasksForUser_Forbidden() throws Exception {
-        when(jwtUtil.getUsernameFromToken(STR_INVALID_TOKEN)).thenReturn("invaliduser");
-        when(taskService.getTasksByUser(anyString(), any())).thenReturn(Page.empty());
+	@Test
+	void testCreateTask_Unauthorized() throws Exception {
+		// Configurar el mock para que devuelva un error 401
+		doReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado"))
+				.when(authUtils).getTokenFromAuthHeader(anyString());
 
-        mockMvc.perform(get("/api/tasks/getAll")
-                .header("Authorization", "Bearer invalid-token"))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value("ERROR"))
-                .andExpect(jsonPath("$.message").value("No tienes permiso para acceder a esta acción"));
-    }
+		mockMvc.perform(post("/api/tasks/create")
+				.header("Authorization", STR_INVALID_TOKEN)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"title\": \"New Task\", \"description\": \"Task Description\"}"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("No autorizado"));
+	}
 
-    @Test
-    void testUpdateTask_Success() throws Exception {
-        Task task = new Task();
-        task.setTitle("Task 1");
-        task.setDescription("Updated task description");
-        
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class)))
-                .thenReturn(true);
-            when(jwtUtil.getRolesFromToken(STR_VALID_TOKEN)).thenReturn(List.of(new SimpleGrantedAuthority("USER")));
-            when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(task);
+	@Test
+	void testGetAllTasksForUser_Forbidden() throws Exception {
+		when(jwtUtil.getUsernameFromToken(STR_INVALID_TOKEN)).thenReturn("invaliduser");
+		when(taskService.getTasksByUser(anyString(), any())).thenReturn(Page.empty());
 
-            mockMvc.perform(put("/api/tasks/{id}", 1L)
-                    .header("Authorization", STR_VALID_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"title\": \"Task 1\", \"description\": \"Updated task description\"}"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("SUCCESS"))
-                    .andExpect(jsonPath("$.message").value("Tarea actualizada"))
-                    .andExpect(jsonPath("$.data.title").value("Task 1"))
-                    .andExpect(jsonPath("$.data.description").value("Updated task description"));
-        }
-    }
+		mockMvc.perform(get("/api/tasks/getAll")
+				.header("Authorization", "Bearer invalid-token"))
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("No tienes permiso para acceder a esta acción"));
+	}
 
-    @Test
-    void testUpdateTask_Unauthorized() throws Exception {
-        Task task = new Task();
-        task.setTitle("Task 1");
-        
-        String authHeader = STR_INVALID_TOKEN;
+	@Test
+	void testUpdateTask_Success() throws Exception {
+		Task task = new Task();
+		task.setTitle("Task 1");
+		task.setDescription("Updated task description");
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class)))
-                .thenReturn(false);
+		doReturn(true).when(authUtils)
+				.isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class));
 
-            mockMvc.perform(put("/api/tasks/{id}", 1L)
-                    .header("Authorization", authHeader)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"title\": \"Task 1\"}"))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status").value("ERROR"))
-                    .andExpect(jsonPath("$.message").value("No autorizado para actualizar esta tarea"));
-        }
-    }
+		doReturn(List.of(new SimpleGrantedAuthority("USER"))).when(jwtUtil)
+				.getRolesFromToken(STR_VALID_TOKEN);
 
-    @Test
-    void testDeleteTask_Success() throws Exception {
-        String authHeader = STR_VALID_TOKEN;
-        
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class), eq(true)))
-                .thenReturn(true);
-            when(taskService.deleteTask(anyLong())).thenReturn(true);
+		when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(task);
 
-            mockMvc.perform(delete("/api/tasks/{id}", 1L)
-                    .header("Authorization", authHeader))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("SUCCESS"))
-                    .andExpect(jsonPath("$.message").value("Tarea eliminada"));
-        }
-    }
+		mockMvc.perform(put("/api/tasks/{id}", 1L)
+				.header("Authorization", STR_VALID_TOKEN)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"title\": \"Task 1\", \"description\": \"Updated task description\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("SUCCESS"))
+				.andExpect(jsonPath("$.message").value("Tarea actualizada"))
+				.andExpect(jsonPath("$.data.title").value("Task 1"))
+				.andExpect(jsonPath("$.data.description").value("Updated task description"));
+	}
 
-    @Test
-    void testDeleteTask_Unauthorized() throws Exception {
-        String authHeader = STR_INVALID_TOKEN;
+	@Test
+	void testUpdateTask_Unauthorized() throws Exception {
+		Task task = new Task();
+		task.setTitle("Task 1");
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class), eq(true)))
-                .thenReturn(false);
+		String authHeader = STR_INVALID_TOKEN;
 
-            mockMvc.perform(delete("/api/tasks/{id}", 1L)
-                    .header("Authorization", authHeader))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status").value("ERROR"))
-                    .andExpect(jsonPath("$.message").value("No autorizado para borrar esta tarea"));
-        }
-    }
+		doReturn(false).when(authUtils)
+				.isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class), anyBoolean());
 
-    @Test
-    void testDeleteTask_NotFound() throws Exception {
-        String authHeader = STR_VALID_TOKEN;
+		mockMvc.perform(put("/api/tasks/{id}", 1L)
+				.header("Authorization", authHeader)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"title\": \"Task 1\"}"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("No autorizado para actualizar esta tarea"));
+	}
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class), eq(true)))
-                .thenReturn(true);
-            when(taskService.deleteTask(anyLong())).thenReturn(false);
+	@Test
+	void testDeleteTask_Success() throws Exception {
+		String authHeader = STR_VALID_TOKEN;
 
-            mockMvc.perform(delete("/api/tasks/{id}", 1L)
-                    .header("Authorization", authHeader))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value("ERROR"))
-                    .andExpect(jsonPath("$.message").value("Tarea no encontrada"));
-        }
-    }
+		doReturn(true).when(authUtils)
+				.isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class), eq(true));
 
-    @Test
-    void testGetAllTasksForAdmin_Success() throws Exception {
-        Task task = new Task();
-        task.setTitle("Task 1");
-        
-        String authHeader = STR_VALID_TOKEN;
-        
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isAdminUser(anyString(), any(JwtUtil.class)))
-                .thenReturn(true);
-            when(jwtUtil.getRolesFromToken(authHeader)).thenReturn(List.of(new SimpleGrantedAuthority("ADMIN")));
-            
-            Pageable pageable = PageRequest.of(0, 10);
-            when(taskService.getAllTasks(any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(new ArrayList<>(List.of(task)), pageable, 1));
+		when(taskService.deleteTask(anyLong())).thenReturn(true);
 
-            mockMvc.perform(get("/api/tasks/admin/getAll")
-                    .header("Authorization", authHeader)
-                    .param("page", "0")
-                    .param("size", "10"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("SUCCESS"))
-                    .andExpect(jsonPath("$.message").value("Lista de tareas"))
-                    .andExpect(jsonPath("$.data.content[0].title").value("Task 1"));
-        }
-    }
+		mockMvc.perform(delete("/api/tasks/{id}", 1L)
+				.header("Authorization", authHeader))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("SUCCESS"))
+				.andExpect(jsonPath("$.message").value("Tarea eliminada"));
+	}
 
-    @Test
-    void testGetAllTasksForAdmin_Unauthorized() throws Exception {
-        String authHeader = STR_VALID_TOKEN;
-        
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isAdminUser(anyString(), any(JwtUtil.class)))
-                .thenReturn(false);
+	@Test
+	void testDeleteTask_Unauthorized() throws Exception {
+		String authHeader = STR_INVALID_TOKEN;
 
-            mockMvc.perform(get("/api/tasks/admin/getAll")
-                    .header("Authorization", authHeader)
-                    .param("page", "0")
-                    .param("size", "10"))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.status").value("ERROR"))
-                    .andExpect(jsonPath("$.message").value("No tienes permiso para acceder a esta acción"));
-        }
-    }
+		doReturn(false).when(authUtils)
+				.isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class), eq(true));
 
-    @Test
-    void testGetTaskById_Success() throws Exception {
-        Long taskId = 1L;
-        String authHeader = STR_VALID_TOKEN;
-        
-        Task task = new Task();
-        task.setId(taskId);
-        task.setTitle("Test Task");
-        
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class), eq(true)))
-                .thenReturn(true);
+		mockMvc.perform(delete("/api/tasks/{id}", 1L)
+				.header("Authorization", authHeader))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("No autorizado para borrar esta tarea"));
+	}
 
-            when(taskService.getTaskById(anyLong())).thenReturn(task);
-        
-            mockMvc.perform(get("/api/tasks/{id}", taskId)
-                    .header("Authorization", authHeader))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("SUCCESS"))
-                    .andExpect(jsonPath("$.message").value("Tarea encontrada"))
-                    .andExpect(jsonPath("$.data.id").value(taskId))
-                    .andExpect(jsonPath("$.data.title").value("Test Task"));
-        }
-    }
+	@Test
+	void testDeleteTask_NotFound() throws Exception {
+		String authHeader = STR_VALID_TOKEN;
 
-    @Test
-    void testGetTaskById_Unauthorized() throws Exception {
-        Long taskId = 1L;
-        String authHeader = STR_INVALID_TOKEN;
-        
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class), eq(true)))
-                .thenReturn(false);
-        
-            mockMvc.perform(get("/api/tasks/{id}", taskId)
-                    .header("Authorization", authHeader))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.status").value("ERROR"))
-                    .andExpect(jsonPath("$.message").value("No autorizado para ver esta tarea"));
-        }
-    }
+		doReturn(true)
+				.when(authUtils).isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class), eq(true));
+		when(taskService.deleteTask(anyLong())).thenReturn(false);
 
-    @Test
-    void testGetTaskById_NotFound() throws Exception {
-        Long taskId = 1L;
-        String authHeader = STR_VALID_TOKEN;
-        
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isTaskOwnedByUser(anyString(), anyLong(), any(JwtUtil.class), any(TaskService.class), eq(true)))
-                .thenReturn(true);
-            when(taskService.getTaskById(anyLong())).thenReturn(null);
-            
-            mockMvc.perform(get("/api/tasks/{id}", taskId)
-                    .header("Authorization", authHeader))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.status").value("ERROR"))
-                    .andExpect(jsonPath("$.message").value("Tarea no encontrada"));
-        }
-    }
+		mockMvc.perform(delete("/api/tasks/{id}", 1L)
+				.header("Authorization", authHeader))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("Tarea no encontrada"));
+	}
 
-    @Test
-    void testGetTasksFiltered_Success() throws Exception {
-        String authHeader = STR_VALID_TOKEN;
-        String status = Task.TaskStatus.EN_PROGRESO.toString();
-        String priority = Task.TaskPriority.ALTA.toString();
-        String title = "Test Task";
-        int page = 0;
-        int size = 10;
-        
-        Task task = new Task();
-        task.setTitle("Test Task");
+	@Test
+	void testGetAllTasksForAdmin_Success() throws Exception {
+		Task task = new Task();
+		task.setTitle("Task 1");
 
-        when(jwtUtil.getUserIdFromToken(anyString())).thenReturn(1L);
+		String authHeader = STR_VALID_TOKEN;
 
-        Pageable pageable = PageRequest.of(0, 10);
-        when(taskService.getTasksByFilters(anyLong(), eq(title), eq(status), eq(priority), any(PageRequest.class)))
-            .thenReturn(new PageImpl<>(new ArrayList<>(List.of(task)), pageable, 1));
-        
-        mockMvc.perform(get("/api/tasks/filter")
-                .header("Authorization", authHeader)
-                .param("status", status)
-                .param("priority", priority)
-                .param("title", title)
-                .param("page", String.valueOf(page))
-                .param("size", String.valueOf(size)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.message").value("Lista de tareas filtradas"))
-                .andExpect(jsonPath("$.data.content[0].title").value("Test Task"));
-    }
+		doReturn(true).when(authUtils).isAdminUser(anyString());
+		doReturn(List.of(new SimpleGrantedAuthority("ADMIN"))).when(jwtUtil).getRolesFromToken(authHeader);
 
-    @Test
-    void testGetTasksFiltered_Unauthorized() throws Exception {
-        String authHeader = "Bear invalid-token";
-        
-        mockMvc.perform(get("/api/tasks/filter")
-                .header("Authorization", authHeader)
-                .param("status", "In Progress")
-                .param("priority", "High")
-                .param("title", "Test Task")
-                .param("page", "0")
-                .param("size", "10"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.status").value("ERROR"))
-                .andExpect(jsonPath("$.message").value("Token no autorizado."));
-    }
+		Pageable pageable = PageRequest.of(0, 10);
+		when(taskService.getAllTasks(any(PageRequest.class)))
+				.thenReturn(new PageImpl<>(new ArrayList<>(List.of(task)), pageable, 1));
+
+		mockMvc.perform(get("/api/tasks/admin/getAll")
+				.header("Authorization", authHeader)
+				.param("page", "0")
+				.param("size", "10"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("SUCCESS"))
+				.andExpect(jsonPath("$.message").value("Lista de tareas"))
+				.andExpect(jsonPath("$.data.content[0].title").value("Task 1"));
+	}
+
+	@Test
+	void testGetAllTasksForAdmin_Unauthorized() throws Exception {
+		String authHeader = STR_VALID_TOKEN;
+
+		doReturn(false).when(authUtils).isAdminUser(anyString());
+
+		mockMvc.perform(get("/api/tasks/admin/getAll")
+				.header("Authorization", authHeader)
+				.param("page", "0")
+				.param("size", "10"))
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("No tienes permiso para acceder a esta acción"));
+	}
+
+	@Test
+	void testGetTaskById_Success() throws Exception {
+		Long taskId = 1L;
+		String authHeader = STR_VALID_TOKEN;
+
+		Task task = new Task();
+		task.setId(taskId);
+		task.setTitle("Test Task");
+
+		doReturn(true)
+				.when(authUtils).isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class), eq(true));
+
+		when(taskService.getTaskById(anyLong())).thenReturn(task);
+
+		mockMvc.perform(get("/api/tasks/{id}", taskId)
+				.header("Authorization", authHeader))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("SUCCESS"))
+				.andExpect(jsonPath("$.message").value("Tarea encontrada"))
+				.andExpect(jsonPath("$.data.id").value(taskId))
+				.andExpect(jsonPath("$.data.title").value("Test Task"));
+	}
+
+	@Test
+	void testGetTaskById_Unauthorized() throws Exception {
+		Long taskId = 1L;
+		String authHeader = STR_INVALID_TOKEN;
+
+		doReturn(false)
+				.when(authUtils).isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class), eq(true));
+
+		mockMvc.perform(get("/api/tasks/{id}", taskId)
+				.header("Authorization", authHeader))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("No autorizado para ver esta tarea"));
+	}
+
+	@Test
+	void testGetTaskById_NotFound() throws Exception {
+		Long taskId = 1L;
+		String authHeader = STR_VALID_TOKEN;
+
+		doReturn(true)
+				.when(authUtils).isTaskOwnedByUser(anyString(), anyLong(), any(TaskService.class), eq(true));
+
+		when(taskService.getTaskById(anyLong())).thenReturn(null);
+
+		mockMvc.perform(get("/api/tasks/{id}", taskId)
+				.header("Authorization", authHeader))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("Tarea no encontrada"));
+	}
+
+	@Test
+	void testGetTasksFiltered_Success() throws Exception {
+		String authHeader = STR_VALID_TOKEN;
+		String status = Task.TaskStatus.EN_PROGRESO.toString();
+		String priority = Task.TaskPriority.ALTA.toString();
+		String title = "Test Task";
+		int page = 0;
+		int size = 10;
+
+		Task task = new Task();
+		task.setTitle("Test Task");
+
+		doReturn(1L).when(jwtUtil).getUserIdFromToken(anyString());
+		doReturn(ResponseEntity.ok("token")).when(authUtils).getTokenFromAuthHeader(anyString());
+
+		Pageable pageable = PageRequest.of(0, 10);
+		when(taskService.getTasksByFilters(anyLong(), eq(title), eq(status), eq(priority), any(PageRequest.class)))
+				.thenReturn(new PageImpl<>(new ArrayList<>(List.of(task)), pageable, 1));
+
+		mockMvc.perform(get("/api/tasks/filter")
+				.header("Authorization", authHeader)
+				.param("status", status)
+				.param("priority", priority)
+				.param("title", title)
+				.param("page", String.valueOf(page))
+				.param("size", String.valueOf(size)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("SUCCESS"))
+				.andExpect(jsonPath("$.message").value("Lista de tareas filtradas"))
+				.andExpect(jsonPath("$.data.content[0].title").value("Test Task"));
+	}
+
+	@Test
+	void testGetTasksFiltered_Unauthorized() throws Exception {
+		String authHeader = "Bear invalid-token";
+
+		doReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token no autorizado."))
+				.when(authUtils).getTokenFromAuthHeader(anyString());
+
+		mockMvc.perform(get("/api/tasks/filter")
+				.header("Authorization", authHeader)
+				.param("status", "In Progress")
+				.param("priority", "High")
+				.param("title", "Test Task")
+				.param("page", "0")
+				.param("size", "10"))
+				.andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.status").value("ERROR"))
+				.andExpect(jsonPath("$.message").value("Token no autorizado."));
+	}
 }

@@ -1,30 +1,33 @@
 package com.prtec.auth;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.prtec.auth.adapter.in.controller.AuthController;
 import com.prtec.auth.application.service.AuthService;
 import com.prtec.auth.application.utils.AuthUtils;
 import com.prtec.auth.application.utils.JwtUtil;
 import com.prtec.auth.domain.model.dto.ApiResponseDTO;
 import com.prtec.auth.domain.model.dto.AuthRequest;
 import com.prtec.auth.domain.model.entities.User;
-import com.prtec.auth.adapter.in.controller.AuthController;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 @SuppressWarnings("null")
+@ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
     @InjectMocks
@@ -35,7 +38,7 @@ class AuthControllerTest {
 
     @Mock
     private AuthUtils authUtils;
-    
+
     @Mock
     private JwtUtil jwtUtil;
 
@@ -43,7 +46,6 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         authHeader = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJVU0VSIl0sInVzZXJJZCI6Miwic3ViIjoidXNlciIsImlhdCI6MTc0MzEyNzg1OSwiZXhwIjoxNzQzMTMxNDU5fQ.VhVcvUvoCdwcmhgnZl5R82jHqz-PLA_H7c7jxqCRfWQ";
     }
 
@@ -53,17 +55,15 @@ class AuthControllerTest {
         user.setUsername("testuser");
         user.setPassword("password123");
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isAdminUser(anyString(), eq(jwtUtil))).thenReturn(true);
-            when(authService.register(any(User.class))).thenReturn(user);
-            ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsUser(user);
+        when(authService.register(any(User.class))).thenReturn(user);
 
-            assertNotNull(response);
-            assertNotNull(response.getBody());
-            assertEquals(HttpStatus.CREATED, response.getStatusCode());
-            assertEquals("SUCCESS", response.getBody().getStatus().toString());
-            assertEquals("testuser", ((User) response.getBody().getData()).getUsername());
-        }
+        ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsUser(user);
+
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("SUCCESS", response.getBody().getStatus().toString());
+        assertEquals("testuser", ((User) response.getBody().getData()).getUsername());
     }
 
     @Test
@@ -72,17 +72,15 @@ class AuthControllerTest {
         user.setUsername("testuser");
         user.setPassword("password123");
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isAdminUser(anyString(), eq(jwtUtil))).thenReturn(true);
-            when(authService.register(any(User.class))).thenThrow(new RuntimeException("Database error"));
-            ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsUser(user);
+        when(authService.register(any(User.class))).thenThrow(new RuntimeException("Database error"));
 
-            assertNotNull(response);
-            assertNotNull(response.getBody());
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-            assertEquals("ERROR", response.getBody().getStatus().toString());
-            assertEquals("Error al registrar el usuario", response.getBody().getMessage());
-        }        
+        ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsUser(user);
+
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("ERROR", response.getBody().getStatus().toString());
+        assertEquals("Error al registrar el usuario", response.getBody().getMessage());
     }
 
     @Test
@@ -91,21 +89,19 @@ class AuthControllerTest {
         user.setUsername("testadminuser");
         user.setPassword("password123");
 
-        // Crear encabezados HTTP con el authHeader
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authHeader);
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isAdminUser(anyString(), eq(jwtUtil))).thenReturn(true);
-            when(authService.register(any(User.class))).thenReturn(user);
-            ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsAdmin(authHeader, user);
+        when(authUtils.isAdminUser(anyString())).thenReturn(true);
+        when(authService.register(any(User.class))).thenReturn(user);
 
-            assertNotNull(response);
-            assertNotNull(response.getBody());
-            assertEquals(HttpStatus.CREATED, response.getStatusCode());
-            assertEquals("SUCCESS", response.getBody().getStatus().toString());
-            assertEquals("testadminuser", ((User) response.getBody().getData()).getUsername());
-        }
+        ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsAdmin(authHeader, user);
+
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("SUCCESS", response.getBody().getStatus().toString());
+        assertEquals("testadminuser", ((User) response.getBody().getData()).getUsername());
     }
 
     @Test
@@ -114,23 +110,20 @@ class AuthControllerTest {
         user.setUsername("testadminuser");
         user.setPassword("password123");
 
-        // Crear encabezados HTTP con el authHeader
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authHeader);
 
-        try (MockedStatic<AuthUtils> mockedAuthUtils = Mockito.mockStatic(AuthUtils.class)) {
-            mockedAuthUtils.when(() -> AuthUtils.isAdminUser(anyString(), eq(jwtUtil))).thenReturn(true);
-            when(authService.register(any(User.class))).thenThrow(new RuntimeException("Database error"));
-            ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsAdmin(authHeader, user);
+        when(authUtils.isAdminUser(anyString())).thenReturn(true);
+        when(authService.register(any(User.class))).thenThrow(new RuntimeException("Database error"));
 
-            assertNotNull(response);
-            assertNotNull(response.getBody());
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-            assertEquals("ERROR", response.getBody().getStatus().toString());
-            assertEquals("Error al registrar el usuario", response.getBody().getMessage());
-        }        
+        ResponseEntity<ApiResponseDTO<User>> response = authController.registerAsAdmin(authHeader, user);
+
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("ERROR", response.getBody().getStatus().toString());
+        assertEquals("Error al registrar el usuario", response.getBody().getMessage());
     }
-
 
     @Test
     void testLoginSuccess() {
@@ -139,14 +132,17 @@ class AuthControllerTest {
         mockUser.setUsername("testuser");
 
         when(authService.authenticate(authRequest.getUsername(), authRequest.getPassword())).thenReturn("mockToken");
+        when(jwtUtil.createRefreshToken(any(), eq("testuser"))).thenReturn("mockRefreshToken");
 
-        ResponseEntity<ApiResponseDTO<String>> response = authController.login(authRequest);
+        ResponseEntity<ApiResponseDTO<Map<String, String>>> response = authController.login(authRequest);
 
         assertNotNull(response);
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("SUCCESS", response.getBody().getStatus().toString());
-        assertEquals("mockToken", response.getBody().getData());
+        assertNotNull(response.getBody().getData());
+        assertEquals("mockToken", response.getBody().getData().get("accessToken"));
+        assertEquals("mockRefreshToken", response.getBody().getData().get("refreshToken"));
     }
 
     @Test
@@ -155,7 +151,7 @@ class AuthControllerTest {
 
         when(authService.authenticate(authRequest.getUsername(), authRequest.getPassword())).thenThrow(new BadCredentialsException("Invalid credentials"));
 
-        ResponseEntity<ApiResponseDTO<String>> response = authController.login(authRequest);
+        ResponseEntity<ApiResponseDTO<Map<String, String>>> response = authController.login(authRequest);
 
         assertNotNull(response);
         assertNotNull(response.getBody());

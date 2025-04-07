@@ -32,7 +32,8 @@ class AuthUtilsTest {
     @Test
     void testGetTokenFromAuthHeader_ValidToken() {
         String authHeader = "Bearer validToken";
-        ResponseEntity<String> response = AuthUtils.getTokenFromAuthHeader(authHeader);
+        
+        ResponseEntity<String> response = authUtils.getTokenFromAuthHeader(authHeader);
         
         assertEquals("validToken", response.getBody());
         assertEquals(200, response.getStatusCode().value());
@@ -41,7 +42,8 @@ class AuthUtilsTest {
     @Test
     void testGetTokenFromAuthHeader_InvalidToken() {
         String authHeader = "invalidToken";
-        ResponseEntity<String> response = AuthUtils.getTokenFromAuthHeader(authHeader);
+        
+        ResponseEntity<String> response = authUtils.getTokenFromAuthHeader(authHeader);
         
         assertEquals("No autorizado", response.getBody());
         assertEquals(401, response.getStatusCode().value());
@@ -56,7 +58,7 @@ class AuthUtilsTest {
         List<GrantedAuthority> roles = Arrays.asList(authority);
         when(jwtUtil.getRolesFromToken(token)).thenReturn(roles);
         
-        boolean result = AuthUtils.hasRole(token, role, jwtUtil);
+        boolean result = authUtils.hasRole(token, role);
         
         assertTrue(result);
     }
@@ -70,7 +72,7 @@ class AuthUtilsTest {
         List<GrantedAuthority> roles = Arrays.asList(authority);
         when(jwtUtil.getRolesFromToken(token)).thenReturn(roles);
         
-        boolean result = AuthUtils.hasRole(token, role, jwtUtil);
+        boolean result = authUtils.hasRole(token, role);
         
         assertFalse(result);
     }
@@ -83,7 +85,7 @@ class AuthUtilsTest {
         List<GrantedAuthority> roles = Arrays.asList(authority);
         when(jwtUtil.getRolesFromToken(anyString())).thenReturn(roles);
         
-        boolean result = AuthUtils.isAdminUser(authHeader, jwtUtil);
+        boolean result = authUtils.isAdminUser(authHeader);
         
         assertTrue(result);
     }
@@ -96,7 +98,7 @@ class AuthUtilsTest {
         List<GrantedAuthority> roles = Arrays.asList(authority);
         when(jwtUtil.getRolesFromToken(anyString())).thenReturn(roles);
         
-        boolean result = AuthUtils.isAdminUser(authHeader, jwtUtil);
+        boolean result = authUtils.isAdminUser(authHeader);
         
         assertFalse(result);
     }
@@ -110,7 +112,7 @@ class AuthUtilsTest {
         List<GrantedAuthority> roles = Arrays.asList(authority);
         when(jwtUtil.getRolesFromToken(anyString())).thenReturn(roles);
         
-        boolean result = AuthUtils.validateUserRole(authHeader, jwtUtil, role);
+        boolean result = authUtils.validateUserRole(authHeader, role);
         
         assertTrue(result);
     }
@@ -124,7 +126,7 @@ class AuthUtilsTest {
         List<GrantedAuthority> roles = Arrays.asList(authority);
         when(jwtUtil.getRolesFromToken(anyString())).thenReturn(roles);
         
-        boolean result = AuthUtils.validateUserRole(authHeader, jwtUtil, role);
+        boolean result = authUtils.validateUserRole(authHeader, role);
         
         assertFalse(result);
     }

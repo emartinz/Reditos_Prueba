@@ -1,3 +1,13 @@
+# ETAPA 1: Compilacion del proyecto
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+WORKDIR /build
+
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+#ETAPA 2: Despliegue
 FROM openjdk:17-jdk-slim
 
 # Directorio de trabajo
@@ -7,7 +17,7 @@ ENV APP_NAME=auth
 
 # Copiar archivos necesarios
 COPY .env /app/.env
-COPY target/${APP_NAME}-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /build/target/${APP_NAME}-0.0.1-SNAPSHOT.jar app.jar
 
 # Exponer puerto 8080 (aplicación) y 5005 (depuración)
 EXPOSE 8080 5005
